@@ -6,7 +6,18 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [gcc_64, msvc2017_64, clang_64]
+        platform: 
+          - gcc_64
+          - msvc2017_64
+          - msvc2017
+          - winrt_x64_msvc2017
+          - winrt_x86_msvc2017
+          - winrt_armv7_msvc2017
+          - mingw73_64
+          - mingw73_32
+          - clang_64
+          - ios
+
         include: 
           - platform: gcc_64
             os: ubuntu-latest
@@ -14,7 +25,28 @@ jobs:
           - platform: msvc2017_64
             os: windows-latest
             repo: windows_x86
+          - platform: msvc2017
+            os: windows-latest
+            repo: windows_x86
+          - platform: winrt_x64_msvc2017
+            os: windows-latest
+            repo: windows_x86
+          - platform: winrt_x86_msvc2017
+            os: windows-latest
+            repo: windows_x86
+          - platform: winrt_armv7_msvc2017
+            os: windows-latest
+            repo: windows_x86
+          - platform: mingw73_64
+            os: windows-latest
+            repo: windows_x86
+          - platform: mingw73_32
+            os: windows-latest
+            repo: windows_x86
           - platform: clang_64
+            os: macos-latest
+            repo: mac_x64
+          - platform: ios
             os: macos-latest
             repo: mac_x64
 
