@@ -32,7 +32,7 @@ if (!tempDirectory) {
 
 export async function getQt(version: string, platform: string, packages: string, iArgs: string) {
   // check cache
-  let toolPath: string | null = null; //tc.find('qt', version, platform);
+  let toolPath: string | null = tc.find('qt', version, platform);
 
   if (!toolPath) {
     // download, extract, cache
@@ -40,7 +40,7 @@ export async function getQt(version: string, platform: string, packages: string,
     core.debug('Qt installation is cached under ' + toolPath);
   }
 
-  core.addPath(path.join(toolPath, version, platform, "bin"));
+  core.addPath(path.join(toolPath, "bin"));
   await io.which('qmake', true);
   await ex.exec("qmake", ["-version"]);
 }
@@ -63,7 +63,6 @@ async function acquireQt(version: string, platform: string, packages: string, iA
   const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
   try {
 	await fs.mkdir(path.join(tempDirectory, 'home'));
-	console.log(qtScript.generateScript(installPath, version, platform, packages));
 	await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, platform, packages));
   } catch (error) {
     console.log(error);

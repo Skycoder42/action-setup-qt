@@ -1,8 +1,8 @@
 export function generateScript(path: string, version: string, platform: string, packages: string) {
 	const qtVer: string = version.replace(/\./g, "")
-	let extraMods = ["qt.tools.qtcreator"];
+	let modules = [`qt.qt5.${qtVer}.${platform}`];
 	for (let entry of packages.split(","))
-		extraMods.push(`qt.qt5.${qtVer}.${entry}`);
+		modules.push(`qt.qt5.${qtVer}.${entry}`);
 	return `
 	// http://stackoverflow.com/questions/25105269/silent-install-qt-run-installer-on-ubuntu-server
 
@@ -49,8 +49,7 @@ export function generateScript(path: string, version: string, platform: string, 
 		gui.findChild(groupBox, "Latest releases").setChecked(true);
 		gui.findChild(groupBox, "FetchCategoryButton").click();
 		widget.deselectAll();
-		widget.selectComponent("qt.qt5.${qtVer}.${platform}");
-		var extraMods = ["${extraMods.join("\", \"")}"];
+		var extraMods = ["${modules.join("\", \"")}"];
 		extraMods.forEach(function(element){
 			widget.selectComponent(element);
 		});
