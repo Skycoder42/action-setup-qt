@@ -18,7 +18,7 @@ let osArch: string = os.arch();
 let tempDirectory: string = process.env['RUNNER_TEMP'] || ''
 if (!tempDirectory) {
 	let baseLocation: string
-	if (osArch == "win32") {
+	if (osPlat == "win32") {
 		// On windows use the USERPROFILE env variable
 		baseLocation = process.env['USERPROFILE'] || 'C:\\'
 	} else {
@@ -147,8 +147,8 @@ function getFileName(version: string): string {
 }
 
 function installPlatform(platform: string): string {
-	console.log("installPlatform", osArch, platform);
-	if (osArch == "win32") {
+	console.log("installPlatform", osPlat, platform);
+	if (osPlat == "win32") {
 		if (platform == "msvc2017_64")
 			return "win64_msvc2017_64";
 		else if (platform == "msvc2017")
