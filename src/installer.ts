@@ -73,6 +73,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 		throw `Failed to download version ${version}: ${error.message}`;
 	}
 	
+	let instArgs = ["--script", scriptPath].concat(iArgs.split(" "));
 	if (osPlat == "win32") {
 		await io.mv(downloadPath, downloadPath + ".exe");
 		downloadPath = downloadPath + ".exe";
@@ -80,7 +81,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 		options.env = {
 			"QT_QPA_PLATFORM": "minimal"
 		};
-		await ex.exec(downloadPath, ["--script", scriptPath].concat(iArgs.split(" ")), options);
+		await ex.exec(downloadPath, instArgs, options);
 	} else if (osPlat == "linux") {
 		await fs.chmod(downloadPath, 0o755);
 		const options: any = {};
@@ -88,7 +89,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 			"QT_QPA_PLATFORM": "minimal",
 			"HOME": path.join(tempDirectory, 'home')
 		};
-		await ex.exec(downloadPath, ["--script", scriptPath].concat(iArgs.split(" ")), options);
+		await ex.exec(downloadPath, instArgs, options);
 	} else if (osPlat == "darwin") {
 		await ex.exec("hdiutil",  ["attach", downloadPath]);
 		const options: any = {};
@@ -97,7 +98,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 			"HOME": path.join(tempDirectory, 'home')
 		};
 		const vPath: string = glob.sync("/Volumes/qt-unified-mac-x64-*-online/qt-unified-mac-x64-*-online.app/Contents/MacOS/qt-unified-mac-x64-*-online")[0];
-		await ex.exec(vPath, ["--script", scriptPath].concat(iArgs.split(" ")), options);
+		await ex.exec(vPath, instArgs, options);
 	}
 	
 	const qmakePath: string = path.join(installPath, version, platform, "bin", "qmake");
