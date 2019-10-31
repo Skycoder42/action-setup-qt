@@ -41,6 +41,8 @@ export async function getQt(version: string, platform: string, packages: string,
   }
 
   core.addPath(path.join(toolPath, version, platform, "bin"));
+  await io.which('qmake', true);
+  await ex.exec("qmake", ["-version"]);
 }
 
 async function acquireQt(version: string, platform: string, packages: string, iArgs: string): Promise<string> {
@@ -83,7 +85,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
   //
   // Install into the local tool cache
   //
-  return await tc.cacheDir(installPath, 'qt', version, platform);
+  return await tc.cacheDir(path.join(installPath, version, platform), 'qt', version, platform);
 }
 
 function getFileName(version: string): string { 
