@@ -63,7 +63,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	//
 	// Run the installer
 	//
-	let installPath: string = osPlat == "win32" ? path.join(process.env['USERPROFILE'] || 'C:\\', 'qt') : path.join(tempDirectory, 'qt');
+	let installPath: string = path.join(tempDirectory, 'qt');
 	const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
 	try {
 		await fs.mkdir(path.join(tempDirectory, 'home'));
