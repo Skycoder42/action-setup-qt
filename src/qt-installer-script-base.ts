@@ -39,10 +39,8 @@ export function generateScript(path: string, version: string, platform: string, 
 
 	// set the installation target directory
 	Controller.prototype.TargetDirectoryPageCallback = function() {
+		console.log("${path}");
 		gui.currentPageWidget().TargetDirectoryLineEdit.setText("${path}");
-		gui.clickButton(buttons.NextButton, 0);
-		console.log(gui.currentPageWidget().TargetDirectoryLineEdit.text());
-		console.log(gui.currentPageWidget().WarningLabel.text());
 		gui.clickButton(buttons.NextButton, 1000);
 	}
 
