@@ -8,9 +8,11 @@ async function run() {
 	let platforms = core.getInput('platforms');
 	let pPackages = core.getInput('platform-packages');
 	let gPackages = core.getInput('global-packages');
-    if (version && platforms && pPackages && gPackages) {
-      await installer.getQt(version, platforms, pPackages, gPackages);
-    }
+    console.log("version", version);
+    console.log("platforms", platforms);
+    console.log("pPackages", pPackages);
+    console.log("gPackages", gPackages);
+    await installer.getQt(version, platforms, pPackages, gPackages);
 
     const matchersPath = path.join(__dirname, '..', '.github');
     console.log(`##[add-matcher]${path.join(matchersPath, 'qt.json')}`);
