@@ -97,7 +97,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 		await ex.exec(vPath, instArgs, options);
 	}
 	
-	const qmakePath: string = path.join(installPath, version, platform, "bin", "qmake");
+	const qmakePath: string = path.join(installPath, version, platform, "bin", osPlat == "win32" ? "qmake.exe" : "qmake");
 	await ex.exec(qmakePath, ["-version"]);
 	const qdepPath: string = await io.which('qdep', true)
 	await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
