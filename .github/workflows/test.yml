@@ -3,33 +3,26 @@ name: Test the action
 on: [push]
 
 jobs:
- build-gcc_64:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        include: 
+          - platform: gcc_64
+            os: ubuntu-lates
+            repo: linux_x64
+          - platform: msvc2017_64
+            os: windows-lates
+            repo: windows_x86
+          - platform: clang_64
+            os: macos-lates
+            repo: mac_x64
+
+    runs-on: ${{matrix.os}}
     steps:
     - uses: actions/setup-python@v1.1.0
     - uses: Skycoder42/action-setup-qt@master
       with:
         version: 5.13.2
-        platform: gcc_64
+        platform: ${{matrix.platform}}
         packages: qtnetworkauth,qtwebengine
-        install-args: "--addRepository https://install.skycoder42.de/qtmodules/linux_x64 --verbose"
- build-msvc2017_64:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/setup-python@v1.1.0
-    - uses: Skycoder42/action-setup-qt@master
-      with:
-        version: 5.13.2
-        platform: msvc2017_64
-        packages: qtnetworkauth,qtwebengine
-        install-args: "--addRepository https://install.skycoder42.de/qtmodules/windows_x86 --verbose"
- build-clang_64:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/setup-python@v1.1.0
-    - uses: Skycoder42/action-setup-qt@master
-      with:
-        version: 5.13.2
-        platform: clang_64
-        packages: qtnetworkauth,qtwebengine
-        install-args: "--addRepository https://install.skycoder42.de/qtmodules/mac_x64 --verbose"
+        install-args: "--addRepository https://install.skycoder42.de/qtmodules/${{matrix.repo}} --verbose"
