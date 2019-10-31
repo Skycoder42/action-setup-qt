@@ -1,0 +1,16 @@
+{
+    "problemMatcher": [
+        {
+            "owner": "qt",
+            "pattern": [
+                {
+                    "regexp": "^(?:(.*)__(a)(a)(a))?$",
+                    "file": 2,
+                    "line": 3,
+                    "column": 4,
+                    "message": 1
+                }
+            ]
+        }
+    ]
+}
