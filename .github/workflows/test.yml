@@ -27,3 +27,5 @@ jobs:
         platform: ${{matrix.platform}}
         packages: qtnetworkauth,qtwebengine
         install-args: "--addRepository https://install.skycoder42.de/qtmodules/${{matrix.repo}} --verbose"
+    - name: "qmake stats"
+      run: qmake -query
