@@ -51,6 +51,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	let downloadPath: string | null = null;
 	try {
 		downloadPath = await tc.downloadTool(downloadUrl);
+		console.log(downloadPath);
 	} catch (error) {
 		console.log(error);
 		throw `Failed to download version ${version}: ${error.message}`;
@@ -63,6 +64,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
 	try {
 		await fs.mkdir(path.join(tempDirectory, 'home'));
+		console.log(qtScript.generateScript(installPath, version, installPlatform(platform), packages));
 		await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, installPlatform(platform), packages));
 	} catch (error) {
 		console.log(error);
