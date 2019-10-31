@@ -10,7 +10,8 @@ export function generateScript(path: string, version: string, platform: string, 
 	return `// http://stackoverflow.com/questions/25105269/silent-install-qt-run-installer-on-ubuntu-server
 
 	function Controller() {
-		installer.autoRejectMessageBoxes();
+		//installer.autoRejectMessageBoxes();
+		installer.setMessageBoxAutomaticAnswer("installationErrorWithRetry", QMessageBox.Ignore);
 		installer.installationFinished.connect(function() {
 			gui.clickButton(buttons.NextButton, 1000);
 		});
