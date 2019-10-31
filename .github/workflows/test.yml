@@ -1,4 +1,4 @@
-name: action test
+name: Test the action
 
 on: [push]
 
