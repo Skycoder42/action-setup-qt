@@ -41,7 +41,6 @@ export async function getQt(version: string, platform: string, packages: string,
   }
 
   core.addPath(path.join(toolPath, "bin"));
-  await io.which('qmake', true);
   await ex.exec("qmake", ["-version"]);
 }
 
@@ -80,6 +79,12 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	await ex.exec(downloadPath, ["--script", scriptPath].concat(iArgs.split(" ")), options);
   } else if (osPlat == "darwin") {
   }
+  
+  await ex.exec("qmake", ["-version"]);
+  const pythonPath: string = await io.which('python', true)
+  await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
+  const qdepPath: string = await io.which('qdep', true)
+  await ex.exec(qdepPath, ["prfgen", "--qmake", path.join(installPath, version, platform, "bin", "qmake")]);
 
   //
   // Install into the local tool cache
