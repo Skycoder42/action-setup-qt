@@ -12,3 +12,4 @@ jobs:
         platform: gcc_64
         platform-packages: qtnetworkauth,qtwebengine
         global-packages: qt.tools.ifw.31
+        install-args: "--addRepository https://install.skycoder42.de/qtmodules/linux_x64"
