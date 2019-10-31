@@ -1,0 +1,14 @@
+name: action test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: Skycoder42/action-setup-qt@master
+      with:
+        version: 5.13.1
+        platform: gcc_64
+        platform-packages: qtnetworkauth,qtwebengine
+        global-packages: qt.tools.ifw.31
