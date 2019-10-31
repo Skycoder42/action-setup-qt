@@ -27,7 +27,7 @@ if (!tempDirectory) {
       baseLocation = '/home';
     }
   }
-  tempDirectory = path.join(baseLocation, 'actions', 'temp');
+  tempDirectory = path.join(baseLocation, 'runner', 'work', '_temp');
 }
 
 export async function getQt(version: string, platform: string, pPackages: string, gPackages: string) {
