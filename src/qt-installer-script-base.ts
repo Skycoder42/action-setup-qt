@@ -40,7 +40,6 @@ export function generateScript(path: string, version: string, platform: string, 
 
 	// set the installation target directory
 	Controller.prototype.TargetDirectoryPageCallback = function() {
-		console.log("${path.replace(/\\/g, "/")}");
 		gui.currentPageWidget().TargetDirectoryLineEdit.setText("${path.replace(/\\/g, "/")}");
 		gui.clickButton(buttons.NextButton, 1000);
 	}
