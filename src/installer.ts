@@ -30,21 +30,20 @@ if (!tempDirectory) {
   tempDirectory = path.join(baseLocation, 'runner', 'work', '_temp');
 }
 
-export async function getQt(version: string, platform: string, pPackages: string, gPackages: string) {
+export async function getQt(version: string, platform: string, pPackages: string, gPackages: string, iArgs: string) {
   // check cache
-  let toolPath: string;
-  toolPath = null; //tc.find('qt', version, platform);
+  let toolPath: string | null = null; //tc.find('qt', version, platform);
 
   if (!toolPath) {
     // download, extract, cache
-    toolPath = await acquireQt(version, platform, pPackages, gPackages);
+    toolPath = await acquireQt(version, platform, pPackages, gPackages, iArgs);
     core.debug('Qt installation is cached under ' + toolPath);
   }
 
   core.addPath(path.join(toolPath, version, platform, "bin"));
 }
 
-async function acquireQt(version: string, platform: string, pPackages: string, gPackages: string): Promise<string> {
+async function acquireQt(version: string, platform: string, pPackages: string, gPackages: string, iArgs: string): Promise<string> {
   const fileName: string = getFileName(version);
   const downloadUrl: string = util.format('https://download.qt.io/official_releases/online_installers/%s', fileName);
   let downloadPath: string | null = null;
@@ -77,7 +76,7 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
 		"QT_QPA_PLATFORM": "minimal",
 		"HOME": path.join(tempDirectory, 'home')
 	};
-	await ex.exec(downloadPath, ["--script", scriptPath, "--addRepository", "https://install.skycoder42.de/qtmodules/linux_x64", "--verbose"], options);
+	await ex.exec(downloadPath, ["--script", scriptPath].concat(iArgs.split(" ")), options);
   } else if (osPlat == "darwin") {
   }
 
