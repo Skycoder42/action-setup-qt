@@ -77,11 +77,7 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	if (osPlat == "win32") {
 		await io.mv(downloadPath, downloadPath + ".exe");
 		downloadPath = downloadPath + ".exe";
-		const options: any = {};
-		options.env = {
-			"QT_QPA_PLATFORM": "minimal"
-		};
-		await ex.exec(downloadPath, instArgs, options);
+		await ex.exec(downloadPath, instArgs);
 	} else if (osPlat == "linux") {
 		await fs.chmod(downloadPath, 0o755);
 		const options: any = {};
