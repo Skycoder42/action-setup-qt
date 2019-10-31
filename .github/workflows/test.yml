@@ -6,15 +6,16 @@ jobs:
   build:
     strategy:
       matrix:
+        platform: [gcc_64, msvc2017_64, clang_64]
         include: 
           - platform: gcc_64
-            os: ubuntu-lates
+            os: ubuntu-latest
             repo: linux_x64
           - platform: msvc2017_64
-            os: windows-lates
+            os: windows-latest
             repo: windows_x86
           - platform: clang_64
-            os: macos-lates
+            os: macos-latest
             repo: mac_x64
 
     runs-on: ${{matrix.os}}
