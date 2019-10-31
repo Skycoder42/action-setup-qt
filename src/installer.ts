@@ -61,7 +61,7 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
   const installPath: string = path.join(tempDirectory, 'qt');
   const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
   try {
-	io.mkdirP(tempDirectory);
+	await fs.mkdir(tempDirectory);
 	await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, platform, pPackages, gPackages));
   } catch (error) {
     core.debug(error);
