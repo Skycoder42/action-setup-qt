@@ -3,7 +3,7 @@ name: Test the action
 on: [push]
 
 jobs:
-  build:
+ build-gcc_64:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v1.1.0
@@ -13,3 +13,23 @@ jobs:
         platform: gcc_64
         packages: qtnetworkauth,qtwebengine
         install-args: "--addRepository https://install.skycoder42.de/qtmodules/linux_x64 --verbose"
+ build-msvc2017_64:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/setup-python@v1.1.0
+    - uses: Skycoder42/action-setup-qt@master
+      with:
+        version: 5.13.1
+        platform: msvc2017_64
+        packages: qtnetworkauth,qtwebengine
+        install-args: "--addRepository https://install.skycoder42.de/qtmodules/windows_x86 --verbose"
+ build-clang_64:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/setup-python@v1.1.0
+    - uses: Skycoder42/action-setup-qt@master
+      with:
+        version: 5.13.1
+        platform: clang_64
+        packages: qtnetworkauth,qtwebengine
+        install-args: "--addRepository https://install.skycoder42.de/qtmodules/mac_x64 --verbose"
