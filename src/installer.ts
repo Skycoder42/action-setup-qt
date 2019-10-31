@@ -67,7 +67,6 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
 	try {
 		await fs.mkdir(path.join(tempDirectory, 'home'));
-		console.log(qtScript.generateScript(installPath, version, installPlatform(platform), packages));
 		await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, installPlatform(platform), packages));
 	} catch (error) {
 		console.log(error);
@@ -147,7 +146,6 @@ function getFileName(version: string): string {
 }
 
 function installPlatform(platform: string): string {
-	console.log("installPlatform", osPlat, platform);
 	if (osPlat == "win32") {
 		if (platform == "msvc2017_64")
 			return "win64_msvc2017_64";
