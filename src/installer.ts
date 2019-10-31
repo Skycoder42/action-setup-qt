@@ -51,7 +51,6 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
   try {
     downloadPath = await tc.downloadTool(downloadUrl);
   } catch (error) {
-    core.debug(error);
     throw `Failed to download version ${version}: ${error}`;
   }
 
@@ -64,7 +63,6 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
 	await fs.mkdir(tempDirectory);
 	await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, platform, pPackages, gPackages));
   } catch (error) {
-    core.debug(error);
     throw `Failed to download version ${version}: ${error}`;
   }
   

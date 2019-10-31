@@ -9,6 +9,8 @@ async function run() {
     const matchersPath = path.join(__dirname, '..', '.github');
     console.log(`##[add-matcher]${path.join(matchersPath, 'qt.json')}`);
   } catch (error) {
+	core.error(error.message);
+    console.log(error.message);
     core.setFailed(error.message);
   }
 }
