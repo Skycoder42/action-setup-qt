@@ -63,10 +63,11 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	//
 	// Run the installer
 	//
-	const installPath: string = path.join(tempDirectory, 'qt');
+	let installPath: string = path.join(tempDirectory, 'qt');
 	const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
 	try {
 		await fs.mkdir(path.join(tempDirectory, 'home'));
+		console.log(qtScript.generateScript(installPath, version, installPlatform(platform), packages));
 		await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, installPlatform(platform), packages));
 	} catch (error) {
 		console.log(error);
@@ -75,6 +76,8 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	
 	let instArgs = ["--script", scriptPath].concat(iArgs.split(" "));
 	if (osPlat == "win32") {
+		installPath = path.join(process.env['USERPROFILE'] || 'C:\\', 'qt')
+		await io.mkdirP(installPath);
 		await io.mv(downloadPath, downloadPath + ".exe");
 		downloadPath = downloadPath + ".exe";
 		await ex.exec(downloadPath, instArgs);
