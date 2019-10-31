@@ -51,6 +51,7 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
   try {
     downloadPath = await tc.downloadTool(downloadUrl);
   } catch (error) {
+    console.log(error);
     throw `Failed to download version ${version}: ${error}`;
   }
 
@@ -63,6 +64,7 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
 	await fs.mkdir(tempDirectory);
 	await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, platform, pPackages, gPackages));
   } catch (error) {
+    console.log(error);
     throw `Failed to download version ${version}: ${error}`;
   }
   
@@ -102,7 +104,7 @@ function getFileName(version: string): string {
 	ext = "dmg" 
   } else {
 	let error = "Unsupported host platform";
-    core.debug(error);
+    console.log(error);
     throw `Failed to download version ${version}: ${error}`;
   }
 
