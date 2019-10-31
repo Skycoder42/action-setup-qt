@@ -9,11 +9,14 @@ inputs:
     description: 'A version dependend platform package to be installed. Example: gcc_64'
     default: 'gcc_64'
   platform-packages:
-    description: 'A comma seperated list of additional packages to be installed per platform selected. Example: qtnetworkauth,qtwebengine'
-    default: ''
+    description: 'A list of additional packages to be installed per platform selected. Example: qtnetworkauth,qtwebengine'
   global-packages:
-    description: 'A comma seperated list of additional full packages to be installed. Example: qt.tools.maintenance'
-    default: ''
+    description: 'A list of additional full packages to be installed. Example: qt.tools.maintenance'
+  install-args:
+    description: 'Extra arguments to be passed to the Qt maintenance installation'
+    default: 
+      - --addRepository
+      - https://install.skycoder42.de/qtmodules/linux_x64
 runs:
   using: 'node12'
   main: 'lib/setup-qt.js'

@@ -33,7 +33,7 @@ if (!tempDirectory) {
 export async function getQt(version: string, platform: string, pPackages: string, gPackages: string) {
   // check cache
   let toolPath: string;
-  toolPath = tc.find('qt', version, platform);
+  toolPath = null; //tc.find('qt', version, platform);
 
   if (!toolPath) {
     // download, extract, cache

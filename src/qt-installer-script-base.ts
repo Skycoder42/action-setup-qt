@@ -1,9 +1,9 @@
 export function generateScript(path: string, version: string, platform: string, pPackages: string, gPackages: string) {
 	const qtVer: string = version.replace(".", "")
 	let extraMods = ["qt.tools.qtcreator"];
-	for (let entry of pPackages)
+	for (let entry of pPackages.split(","))
 		extraMods.push(`qt.qt5.${version}.${entry}`);
-	for (let entry of gPackages)
+	for (let entry of gPackages.split(","))
 		extraMods.push(entry);
 	return `
 	// http://stackoverflow.com/questions/25105269/silent-install-qt-run-installer-on-ubuntu-server
