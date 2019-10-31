@@ -80,11 +80,12 @@ async function acquireQt(version: string, platform: string, packages: string, iA
   } else if (osPlat == "darwin") {
   }
   
-  await ex.exec("qmake", ["-version"]);
+  const qmakePath: string = path.join(installPath, version, platform, "bin", "qmake");
+  await ex.exec(qmakePath, ["-version"]);
   const pythonPath: string = await io.which('python', true)
   await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
   const qdepPath: string = await io.which('qdep', true)
-  await ex.exec(qdepPath, ["prfgen", "--qmake", path.join(installPath, version, platform, "bin", "qmake")]);
+  await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
 
   //
   // Install into the local tool cache
