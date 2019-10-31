@@ -7,8 +7,7 @@ export function generateScript(path: string, version: string, platform: string, 
 		modules.push("qt.tools.win64_mingw73");
 	if (platform == "win32_mingw73")
 		modules.push("qt.tools.win32_mingw73");
-	return `
-	// http://stackoverflow.com/questions/25105269/silent-install-qt-run-installer-on-ubuntu-server
+	return `// http://stackoverflow.com/questions/25105269/silent-install-qt-run-installer-on-ubuntu-server
 
 	function Controller() {
 		installer.autoRejectMessageBoxes();

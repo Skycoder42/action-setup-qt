@@ -1,4 +1,3 @@
-let tempDirectory = process.env['RUNNER_TEMPDIRECTORY'] || '';
 import * as core from '@actions/core';
 import * as io from '@actions/io';
 import * as tc from '@actions/tool-cache';
@@ -16,18 +15,19 @@ import * as qtScript from './qt-installer-script-base';
 let osPlat: string = os.platform();
 let osArch: string = os.arch();
 
+let tempDirectory: string = process.env['RUNNER_TEMP'] || ''
 if (!tempDirectory) {
-	let baseLocation;
-	if (process.platform === 'win32') {
+	let baseLocation: string
+	if (osArch == "win32") {
 		// On windows use the USERPROFILE env variable
-		baseLocation = process.env['USERPROFILE'] || 'C:\\';
+		baseLocation = process.env['USERPROFILE'] || 'C:\\'
 	} else {
 		if (process.platform === 'darwin')
-			baseLocation = '/Users';
+			baseLocation = '/Users'
 		else
-			baseLocation = '/home';
+			baseLocation = '/home'
 	}
-	tempDirectory = path.join(baseLocation, 'runner', 'work', '_temp');
+	tempDirectory = path.join(baseLocation, 'actions', 'temp')
 }
 
 export async function getQt(version: string, platform: string, packages: string, iArgs: string) {
