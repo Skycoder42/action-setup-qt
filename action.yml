@@ -8,11 +8,8 @@ inputs:
   platform:
     description: 'A version dependend platform package to be installed. Example: gcc_64'
     default: 'gcc_64'
-  platform-packages:
+  packages:
     description: 'A comma seperated list of additional packages to be installed per platform selected. Example: qtnetworkauth,qtwebengine'
-    default: ''
-  global-packages:
-    description: 'A comma seperated list of additional full packages to be installed. Example: qt.tools.maintenance'
     default: ''
   install-args:
     description: 'Extra arguments to be passed to the Qt maintenance installation'

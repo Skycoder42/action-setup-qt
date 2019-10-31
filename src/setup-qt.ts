@@ -7,7 +7,6 @@ async function run() {
     await installer.getQt(core.getInput('version'), 
 						  core.getInput('platform'), 
 						  core.getInput('platform-packages'),
-						  core.getInput('global-packages'),
 						  core.getInput('install-args'));
 
     const matchersPath = path.join(__dirname, '..', '.github');

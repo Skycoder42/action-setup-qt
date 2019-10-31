@@ -30,20 +30,20 @@ if (!tempDirectory) {
   tempDirectory = path.join(baseLocation, 'runner', 'work', '_temp');
 }
 
-export async function getQt(version: string, platform: string, pPackages: string, gPackages: string, iArgs: string) {
+export async function getQt(version: string, platform: string, packages: string, iArgs: string) {
   // check cache
   let toolPath: string | null = null; //tc.find('qt', version, platform);
 
   if (!toolPath) {
     // download, extract, cache
-    toolPath = await acquireQt(version, platform, pPackages, gPackages, iArgs);
+    toolPath = await acquireQt(version, platform, packages, iArgs);
     core.debug('Qt installation is cached under ' + toolPath);
   }
 
   core.addPath(path.join(toolPath, version, platform, "bin"));
 }
 
-async function acquireQt(version: string, platform: string, pPackages: string, gPackages: string, iArgs: string): Promise<string> {
+async function acquireQt(version: string, platform: string, packages: string, iArgs: string): Promise<string> {
   const fileName: string = getFileName(version);
   const downloadUrl: string = util.format('https://download.qt.io/official_releases/online_installers/%s', fileName);
   let downloadPath: string | null = null;
@@ -61,8 +61,8 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
   const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
   try {
 	await fs.mkdir(path.join(tempDirectory, 'home'));
-	console.log(qtScript.generateScript(installPath, version, platform, pPackages, gPackages));
-	await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, platform, pPackages, gPackages));
+	console.log(qtScript.generateScript(installPath, version, platform, packages));
+	await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, platform, packages));
   } catch (error) {
     console.log(error);
     throw `Failed to download version ${version}: ${error.message}`;
