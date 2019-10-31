@@ -52,12 +52,22 @@ jobs:
 
     runs-on: ${{matrix.os}}
     steps:
+    - uses: actions/checkout@v1
     - uses: actions/setup-python@v1.1.0
     - uses: Skycoder42/action-setup-qt@master
       with:
         version: 5.13.2
         platform: ${{matrix.platform}}
         packages: qtnetworkauth,qtwebengine
-        install-args: "--addRepository https://install.skycoder42.de/qtmodules/${{matrix.repo}} --verbose"
-    - name: "qmake stats"
+        install-args: --addRepository https://install.skycoder42.de/qtmodules/${{matrix.repo}} --verbose
+    - name: qmake stats
       run: qmake -query
+    - name: qmake hello-world
+      run: qmake
+      working-directory: hello-world
+    - name: make hello-world
+      run: make
+      working-directory: hello-world
+    - name: test hello-world
+      run: make test
+      working-directory: hello-world
