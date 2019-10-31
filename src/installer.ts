@@ -61,7 +61,8 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
   const installPath: string = path.join(tempDirectory, 'qt');
   const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
   try {
-	fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, platform, pPackages, gPackages));
+	io.mkdirP(tempDirectory);
+	await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, platform, pPackages, gPackages));
   } catch (error) {
     core.debug(error);
     throw `Failed to download version ${version}: ${error}`;
@@ -70,7 +71,11 @@ async function acquireQt(version: string, platform: string, pPackages: string, g
   if (osPlat == "win32") {
   } else if (osPlat == "linux") {
 	await fs.chmod(downloadPath, 0o755);
-	await ex.exec(downloadPath, ["--script", scriptPath, "--addRepository", "https://install.skycoder42.de/qtmodules/linux_x64", "--verbose"]);
+	const options: any = {};
+	options.env = {
+		"QT_QPA_PLATFORM": "minimal"
+	};
+	await ex.exec(downloadPath, ["--script", scriptPath, "--addRepository", "https://install.skycoder42.de/qtmodules/linux_x64", "--verbose"], options);
   } else if (osPlat == "darwin") {
   }
 
