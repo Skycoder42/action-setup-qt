@@ -31,7 +31,11 @@ if (!tempDirectory) {
 }
 
 export async function getQt(version: string, platform: string, packages: string, iArgs: string) {
-	// check cache
+	// install qdep
+	const pythonPath: string = await io.which('python', true)
+	await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
+	
+	// check cache for Qt installation
 	let toolPath: string | null = tc.find('qt', version, platform);
 
 	if (!toolPath) {
@@ -51,7 +55,6 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	let downloadPath: string | null = null;
 	try {
 		downloadPath = await tc.downloadTool(downloadUrl);
-		console.log(downloadPath);
 	} catch (error) {
 		console.log(error);
 		throw `Failed to download version ${version}: ${error.message}`;
@@ -64,7 +67,6 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	const scriptPath: string = path.join(tempDirectory, 'qt-installer-script.qs');
 	try {
 		await fs.mkdir(path.join(tempDirectory, 'home'));
-		console.log(qtScript.generateScript(installPath, version, installPlatform(platform), packages));
 		await fs.writeFile(scriptPath, qtScript.generateScript(installPath, version, installPlatform(platform), packages));
 	} catch (error) {
 		console.log(error);
@@ -72,6 +74,8 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	}
 	
 	if (osPlat == "win32") {
+		await io.mv(downloadPath, downloadPath + ".exe");
+		downloadPath = downloadPath + ".exe";
 		const options: any = {};
 		options.env = {
 			"QT_QPA_PLATFORM": "minimal"
@@ -98,8 +102,6 @@ async function acquireQt(version: string, platform: string, packages: string, iA
 	
 	const qmakePath: string = path.join(installPath, version, platform, "bin", "qmake");
 	await ex.exec(qmakePath, ["-version"]);
-	const pythonPath: string = await io.which('python', true)
-	await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
 	const qdepPath: string = await io.which('qdep', true)
 	await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
 	
