@@ -147,6 +147,7 @@ function getFileName(version: string): string {
 }
 
 function installPlatform(platform: string): string {
+	console.log("installPlatform", osArch, platform);
 	if (osArch == "win32") {
 		if (platform == "msvc2017_64")
 			return "win64_msvc2017_64";

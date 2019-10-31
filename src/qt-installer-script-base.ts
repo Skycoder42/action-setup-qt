@@ -1,4 +1,5 @@
 export function generateScript(path: string, version: string, platform: string, packages: string) {
+	console.log("generateScript", platform);
 	const qtVer: string = version.replace(/\./g, "")
 	let modules = [`qt.qt5.${qtVer}.${platform}`];
 	for (let entry of packages.split(","))
