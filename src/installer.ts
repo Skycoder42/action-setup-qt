@@ -8,7 +8,7 @@ import * as tc from '@actions/tool-cache';
 import * as ex from '@actions/exec';
 
 import { IPlatform } from './platform';
-import { LinuxPlatform } from './linuxplatform';
+import { LinuxPlatform, AndroidPlatform } from './linuxplatform';
 import { WindowsPlatform, MingwPlatform, MsvcPlatform } from './windowsplatform';
 import { MacosPlatform } from './macosplatform';
 
@@ -25,7 +25,10 @@ export class Installer
 		this.version = version;
 		switch (os.platform()) {
 		case "linux":
-			this.platform = new LinuxPlatform(platform);
+			if (platform.includes("android"))
+				this.platform = new AndroidPlatform(platform);
+			else
+				this.platform = new LinuxPlatform(platform);
 			break;
 		case "win32":
 			if (platform.includes("mingw"))
