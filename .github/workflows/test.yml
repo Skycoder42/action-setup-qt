@@ -1,13 +1,19 @@
 name: Test the action
 
-on: [push]
+on: [push, check_run]
 
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         platform: 
           - gcc_64
+          - android_arm64_v8a
+          - android_x86_64
+          - android_armv7
+          - android_x86
+          - wasm_32
           - msvc2017_64
           - msvc2017
           - winrt_x64_msvc2017
@@ -20,6 +26,21 @@ jobs:
 
         include: 
           - platform: gcc_64
+            os: ubuntu-latest
+            repo: linux_x64
+          - platform: android_arm64_v8a
+            os: ubuntu-latest
+            repo: linux_x64
+          - platform: android_x86_64
+            os: ubuntu-latest
+            repo: linux_x64
+          - platform: android_armv7
+            os: ubuntu-latest
+            repo: linux_x64
+          - platform: android_x86
+            os: ubuntu-latest
+            repo: linux_x64
+          - platform: wasm_32
             os: ubuntu-latest
             repo: linux_x64
           - platform: msvc2017_64
@@ -63,7 +84,7 @@ jobs:
     - name: qmake stats
       run: qmake -query
     - name: qmake hello-world
-      run: qmake
+      run: $QMAKE
       working-directory: hello-world
     - name: make hello-world
       run: make
