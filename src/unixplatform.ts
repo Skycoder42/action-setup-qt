@@ -11,13 +11,13 @@ export abstract class UnixPlatform implements IPlatform
     public abstract installerName(): string
     public abstract runInstaller(tool: string, args: string[], instDir: string): Promise<void>
     
-    public addExtraPaths(_basePath: string): void {}  
+    public addExtraEnvVars(_basePath: string): void {}  
 
     public extraPackages(): string[] | null {
         return null;
     } 
 
-    public qmakeName(basePath: string): string {
+    public qmakeName(): string {
         return "qmake";
     } 
 

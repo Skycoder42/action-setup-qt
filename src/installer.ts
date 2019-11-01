@@ -9,7 +9,7 @@ import * as ex from '@actions/exec';
 
 import { IPlatform } from './platform';
 import { LinuxPlatform } from './linuxplatform';
-import { WindowsPlatform, MingwPlatform } from './windowsplatform';
+import { WindowsPlatform, MingwPlatform, MsvcPlatform } from './windowsplatform';
 import { MacosPlatform } from './macosplatform';
 
 import * as qtScript from './qt-installer-script-base';
@@ -31,7 +31,7 @@ export class Installer
 			if (platform.includes("mingw"))
 				this.platform = new MingwPlatform(platform, version);
 			else
-				this.platform = new WindowsPlatform(platform);
+				this.platform = new MsvcPlatform(platform, version);
 			break;
 		case "darwin":
 			this.platform = new MacosPlatform(platform);
@@ -56,7 +56,8 @@ export class Installer
 		}
 	
 		core.addPath(path.join(toolPath, "bin"));
-		this.platform.addExtraPaths(toolPath);
+		core.exportVariable("QMAKE", this.platform.qmakeName());
+		this.platform.addExtraEnvVars(toolPath);
 		await ex.exec("qmake", ["-version"]);
 	}
 
@@ -90,7 +91,7 @@ export class Installer
 		await this.platform.runInstaller(downloadPath, ["--script", scriptPath].concat(iArgs.split(" ")), installPath);
 		
 		// add qdep prf file
-		const qmakePath: string = path.join(installPath, this.version, this.platform.platform, "bin", this.platform.qmakeName(installPath));
+		const qmakePath: string = path.join(installPath, this.version, this.platform.platform, "bin", this.platform.qmakeName());
 		const qdepPath: string = await io.which('qdep', true)
 		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
 	
