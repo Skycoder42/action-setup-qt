@@ -76,7 +76,7 @@ jobs:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v1.1.0
     - uses: mymindstorm/setup-emsdk@v1
-      if: matrix.platform == "wasm_32"
+      if: matrix.platform == 'wasm_32'
     - uses: Skycoder42/action-setup-qt@master
       with:
         version: 5.13.2
