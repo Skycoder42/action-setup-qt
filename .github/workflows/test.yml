@@ -28,48 +28,63 @@ jobs:
           - platform: gcc_64
             os: ubuntu-latest
             repo: linux_x64
+            test: true
           - platform: android_arm64_v8a
             os: ubuntu-latest
             repo: linux_x64
+            test: false
           - platform: android_x86_64
             os: ubuntu-latest
             repo: linux_x64
+            test: false
           - platform: android_armv7
             os: ubuntu-latest
             repo: linux_x64
+            test: false
           - platform: android_x86
             os: ubuntu-latest
             repo: linux_x64
+            test: false
           - platform: wasm_32
             os: ubuntu-latest
             repo: linux_x64
+            test: false
           - platform: msvc2017_64
             os: windows-latest
             repo: windows_x86
+            test: true
           - platform: msvc2017
             os: windows-latest
             repo: windows_x86
+            test: true
           - platform: winrt_x64_msvc2017
             os: windows-latest
             repo: windows_x86
+            test: false
           - platform: winrt_x86_msvc2017
             os: windows-latest
             repo: windows_x86
+            test: false
           - platform: winrt_armv7_msvc2017
             os: windows-latest
             repo: windows_x86
+            test: false
           - platform: mingw73_64
             os: windows-latest
             repo: windows_x86
+            test: true
           - platform: mingw73_32
             os: windows-latest
             repo: windows_x86
+            test: true
           - platform: clang_64
             os: macos-latest
             repo: mac_x64
+            test: true
           - platform: ios
             os: macos-latest
             repo: mac_x64
+            test: false
 
     runs-on: ${{matrix.os}}
     steps:
@@ -92,5 +107,6 @@ jobs:
       run: make
       working-directory: hello-world
     - name: test hello-world
+      if: matrix.test
       run: make test
       working-directory: hello-world
