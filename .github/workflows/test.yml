@@ -52,22 +52,27 @@ jobs:
           - platform: msvc2017_64
             os: windows-latest
             repo: windows_x86
+            vcarch: x64
             test: true
           - platform: msvc2017
             os: windows-latest
             repo: windows_x86
+            vcarch: x64_x86
             test: true
           - platform: winrt_x64_msvc2017
             os: windows-latest
             repo: windows_x86
+            vcarch: x64
             test: false
           - platform: winrt_x86_msvc2017
             os: windows-latest
             repo: windows_x86
+            vcarch: x64_x86
             test: false
           - platform: winrt_armv7_msvc2017
             os: windows-latest
             repo: windows_x86
+            vcarch: x64_arm
             test: false
           - platform: mingw73_64
             os: windows-latest
@@ -92,6 +97,12 @@ jobs:
     - uses: actions/setup-python@v1.1.0
     - uses: mymindstorm/setup-emsdk@v1
       if: matrix.platform == 'wasm_32'
+      with:
+        version: 1.38.27
+    - uses: seanmiddleditch/gha-setup-vsdevenv@v1
+      if: contains(matrix.platform, 'msvc')
+      with:
+        arch: ${{matrix.vcarch}}
     - uses: Skycoder42/action-setup-qt@master
       with:
         version: 5.13.2
