@@ -18,8 +18,10 @@ export abstract class WindowsPlatform implements IPlatform
         this.version = version;
     }
     
-    public abstract addExtraEnvVars(basePath: string): void
     public abstract installPlatform(): string
+    public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
+
+    public addExtraEnvVars(basePath: string): void {}
 
     public extraPackages(): string[] | null {
         return null;
@@ -29,25 +31,21 @@ export abstract class WindowsPlatform implements IPlatform
         return "qt-unified-windows-x86-online.exe";
     }
 
-    public async runInstaller(tool: string, args: string[], _instDir: string): Promise<void> {
+    public qmakeName(): string {
+        return "qmake.exe";
+    }
+
+    protected async runQtInstaller(tool: string, args: string[]): Promise<void> {
         let exePath = tool + ".exe";
 		await io.mv(tool, exePath);
 		await ex.exec(exePath, args);
-    }
-
-    public qmakeName(): string {
-        return "qmake.exe";
     }
 }
 
 export class MsvcPlatform extends WindowsPlatform
 {
-    public addExtraEnvVars(basePath: string): void {
-
-    }
-
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
-        await super.runInstaller(tool, args, instDir);
+        await this.runQtInstaller(tool, args);
         const makePath = path.join(instDir, this.version, this.platform, "bin", "make.cmd");
         await fs.writeFile(makePath, "@nmake");
     }
@@ -91,7 +89,7 @@ export class MingwPlatform extends WindowsPlatform
     }
 
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
-        await super.runInstaller(tool, args, instDir);
+        await this.runQtInstaller(tool, args);
         if (this.isX64)
             await io.mv(path.join(instDir, "Tools", "mingw730_64"), path.join(instDir, this.version, this.platform, "mingw"));
         else
