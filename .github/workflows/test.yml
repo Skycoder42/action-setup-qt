@@ -98,11 +98,13 @@ jobs:
     - uses: mymindstorm/setup-emsdk@v1
       if: matrix.platform == 'wasm_32'
       with:
-        version: 1.38.27
-    - uses: seanmiddleditch/gha-setup-vsdevenv@v1
+        version: sdk-1.38.27-64bit
+    - uses: ilammy/msvc-dev-cmd@v1.0.0
       if: contains(matrix.platform, 'msvc')
       with:
         arch: ${{matrix.vcarch}}
+        toolset: 14.16
+        uwp: $${{contains(matrix.platform, 'winrt')}}
     - uses: Skycoder42/action-setup-qt@master
       with:
         version: 5.13.2
