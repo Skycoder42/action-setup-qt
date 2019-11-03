@@ -12,6 +12,11 @@ SOURCES += \
 
 test.target = test
 win32 {
+	win32-g++:isEmpty(DESTDIR_TARGET) {
+		CONFIG(release, debug|release): DESTDIR_TARGET = ./release/$${TARGET}.exe
+		else:CONFIG(debug, debug|release): DESTDIR_TARGET = ./debug/$${TARGET}.exe
+		else: DESTDIR_TARGET = ./$${TARGET}.exe
+	}
 	test.depends += $(DESTDIR_TARGET)
 	test.commands += ./$(DESTDIR_TARGET)
 } else {
