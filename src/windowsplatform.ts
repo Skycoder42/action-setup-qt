@@ -18,9 +18,8 @@ export abstract class WindowsPlatform implements IPlatform
         this.version = version;
     }
     
+    public abstract addExtraEnvVars(basePath: string): void
     public abstract installPlatform(): string
-    
-    public addExtraEnvVars(basePath: string): void {}
 
     public extraPackages(): string[] | null {
         return null;
@@ -43,6 +42,16 @@ export abstract class WindowsPlatform implements IPlatform
 
 export class MsvcPlatform extends WindowsPlatform
 {
+    public addExtraEnvVars(basePath: string): void {
+
+    }
+
+    public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
+        await super.runInstaller(tool, args, instDir);
+        const makePath = path.join(instDir, this.version, this.platform, "bin", "make.cmd");
+        await fs.writeFile(makePath, "@nmake");
+    }
+
     public installPlatform(): string {
         switch (this.platform) {
         case "msvc2017_64":
