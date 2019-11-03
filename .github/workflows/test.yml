@@ -117,12 +117,7 @@ jobs:
       run: qmake
       working-directory: hello-world
     - name: make hello-world
-      if: !contains(matrix.platform, 'msvc')
       run: make
-      working-directory: hello-world
-    - name: make hello-world
-      if: contains(matrix.platform, 'msvc')
-      run: nmake
       working-directory: hello-world
     - name: test hello-world
       if: matrix.test
