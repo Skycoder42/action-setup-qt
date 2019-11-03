@@ -104,7 +104,7 @@ jobs:
       with:
         arch: ${{matrix.vcarch}}
         toolset: 14.16
-        uwp: $${{contains(matrix.platform, 'winrt')}}
+        uwp: ${{contains(matrix.platform, 'winrt')}}
     - uses: Skycoder42/action-setup-qt@master
       with:
         version: 5.13.2
@@ -114,7 +114,7 @@ jobs:
     - name: qmake stats
       run: qmake -query
     - name: qmake hello-world
-      run: $QMAKE
+      run: qmake
       working-directory: hello-world
     - name: make hello-world
       run: make
