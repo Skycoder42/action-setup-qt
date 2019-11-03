@@ -17,40 +17,32 @@ export abstract class WindowsPlatform implements IPlatform
         this.platform = platform;
         this.version = version;
     }
-
-    public abstract extraPackages(): string[] | null
+    
     public abstract installPlatform(): string
-    public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
-    public abstract qmakeName(): string;
     
     public addExtraEnvVars(basePath: string): void {}
+
+    public extraPackages(): string[] | null {
+        return null;
+    }
 
     public installerName(): string {
         return "qt-unified-windows-x86-online.exe";
     }
 
-    protected async runInstallerBin(tool: string, args: string[]): Promise<void> {
+    public async runInstaller(tool: string, args: string[], _instDir: string): Promise<void> {
         let exePath = tool + ".exe";
 		await io.mv(tool, exePath);
 		await ex.exec(exePath, args);
+    }
+
+    public qmakeName(): string {
+        return "qmake.exe";
     }
 }
 
 export class MsvcPlatform extends WindowsPlatform
 {
-    public extraPackages(): string[] | null {
-        return null;
-    }
-
-    public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
-        await super.runInstallerBin(tool, args);
-        await this.prepareVcTools(instDir);
-    }
-
-    public qmakeName(): string {
-        return "qmake-vc.bat";
-    }
-
     public installPlatform(): string {
         switch (this.platform) {
         case "msvc2017_64":
@@ -66,40 +58,6 @@ export class MsvcPlatform extends WindowsPlatform
         default:
             throw `Unsupported platform ${this.platform}`;
         }
-    }
-
-    private async prepareVcTools(instDir: string): Promise<void> {
-        let vcTarget: string;
-        let vcPlatform: string | null = null;
-        const vcVersion: string = "-vcvars_ver=14.16";
-        switch (this.platform) {
-        case "winrt_x64_msvc2017":
-            vcPlatform = "uwp";
-        case "msvc2017_64":
-            vcTarget = "x64";
-            break;
-        case "winrt_x86_msvc2017":
-            vcPlatform = "uwp";
-        case "msvc2017":
-            vcTarget = "x64_x86";
-            break;
-        case "winrt_armv7_msvc2017":
-            vcTarget = "x64_arm";
-            vcPlatform = "uwp";
-            break;
-        default:
-            throw `Unsupported platform ${this.platform}`;
-        }
-
-        let args: Array<string> = [vcTarget];
-        if (vcPlatform)
-            args.push(vcPlatform);
-        args.push(vcVersion);
-        
-        await fs.writeFile(path.join(instDir, this.version, this.platform, "bin", "qmake-vc.bat"), `@echo off
-call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" ${vcTarget} ${vcPlatform ? vcPlatform : ""} ${vcVersion} || exit \B 1
-"${path.join(instDir, this.version, this.platform, "bin", "qmake.exe")}" %*
-`);
     }
 }
 
@@ -124,15 +82,11 @@ export class MingwPlatform extends WindowsPlatform
     }
 
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
-        await super.runInstallerBin(tool, args);
+        await super.runInstaller(tool, args, instDir);
         if (this.isX64)
             await io.mv(path.join(instDir, "Tools", "mingw730_64"), path.join(instDir, this.version, this.platform, "mingw"));
         else
             await io.mv(path.join(instDir, "Tools", "mingw730_32"), path.join(instDir, this.version, this.platform, "mingw"));
-    }
-
-    public qmakeName(): string {
-        return "qmake.exe";
     }
 
     public installPlatform(): string {
