@@ -132,6 +132,22 @@ jobs:
     - name: make QtJsonSerializer
       run: make
       working-directory: build
+    - name: MingwTest 1
+      if: contains(matrix.platform, 'mingw')
+      run: dir
+      working-directory: QtJsonSerializer\src\jsonserializer\typeconverters
+    - name: MingwTest 2
+      if: contains(matrix.platform, 'mingw')
+      run: type qjsonchronodurationconverter_p.h
+      working-directory: QtJsonSerializer\src\jsonserializer\typeconverters
+    - name: MingwTest 3
+      if: contains(matrix.platform, 'mingw')
+      run: type qjsonchronodurationconverter_p.h
+      working-directory: build\include\QtJsonSerializer\4.0.0\QtJsonSerializer\private
+    - name: MingwTest 3
+      if: contains(matrix.platform, 'mingw')
+      run: type ..\..\..\..\..\..\QtJsonSerializer\src\jsonserializer\typeconverters\qjsonchronodurationconverter_p.h
+      working-directory: build\include\QtJsonSerializer\4.0.0\QtJsonSerializer\private
     - name: make all QtJsonSerializer
       if: matrix.test
       run: make all
