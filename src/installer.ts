@@ -9,7 +9,7 @@ import * as ex from '@actions/exec';
 
 import { IPlatform } from './platform';
 import { LinuxPlatform, AndroidPlatform } from './linuxplatform';
-import { WindowsPlatform, MingwPlatform, MsvcPlatform } from './windowsplatform';
+import { MingwPlatform, MsvcPlatform } from './windowsplatform';
 import { MacosPlatform } from './macosplatform';
 
 import * as qtScript from './qt-installer-script-base';

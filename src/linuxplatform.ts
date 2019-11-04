@@ -6,7 +6,6 @@ import * as core from '@actions/core';
 import * as ex from '@actions/exec';
 
 import { UnixPlatform } from './unixplatform';
-import { coerce } from 'semver';
 
 export class LinuxPlatform extends UnixPlatform
 {

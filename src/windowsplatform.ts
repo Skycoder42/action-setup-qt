@@ -6,7 +6,6 @@ import * as io from '@actions/io';
 import * as ex from '@actions/exec';
 
 import { IPlatform } from "./platform";
-import { fstat } from 'fs';
 
 export abstract class WindowsPlatform implements IPlatform
 {
