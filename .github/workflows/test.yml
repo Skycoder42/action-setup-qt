@@ -94,6 +94,8 @@ jobs:
     runs-on: ${{matrix.os}}
     steps:
     - uses: actions/checkout@v1
+      with:
+        submodules: recursive
     - uses: actions/setup-python@v1.1.0
     - uses: mymindstorm/setup-emsdk@v1
       if: matrix.platform == 'wasm_32'
