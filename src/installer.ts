@@ -59,7 +59,6 @@ export class Installer
 		}
 	
 		core.addPath(path.join(toolPath, "bin"));
-		core.exportVariable("QMAKE", this.platform.qmakeName());
 		this.platform.addExtraEnvVars(toolPath);
 		await ex.exec("qmake", ["-version"]);
 	}
