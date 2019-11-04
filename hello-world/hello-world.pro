@@ -16,7 +16,7 @@ win32 {
 	else:CONFIG(debug, debug|release): DESTDIR_TARGET = debug/$${TARGET}.exe
 	else: DESTDIR_TARGET = $${TARGET}.exe
 	test.depends += $$DESTDIR_TARGET
-	test.commands += ./$$DESTDIR_TARGET
+	test.commands += $$shell_path(./$$DESTDIR_TARGET)
 } else {
 	test.depends += $(TARGET)
 	test.commands += ./$(TARGET)
