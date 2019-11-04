@@ -48,6 +48,8 @@ export class MsvcPlatform extends WindowsPlatform
         await this.runQtInstaller(tool, args);
         const makePath = path.join(instDir, this.version, this.platform, "bin", "make.cmd");
         await fs.writeFile(makePath, "@nmake");
+        if (this.platform.includes("winrt"))
+            await fs.symlink("C:\\Program Files (x86)\\Microsoft Visual Studio\\2017", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019", 'dir');
     }
 
     public installPlatform(): string {

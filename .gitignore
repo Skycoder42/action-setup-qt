@@ -90,3 +90,5 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+*.pro.user
+build-*
