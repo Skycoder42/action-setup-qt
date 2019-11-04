@@ -123,3 +123,18 @@ jobs:
       if: matrix.test
       run: make test
       working-directory: hello-world
+    - run: mkdir build
+    - name: qmake QtJsonSerializer
+      run: qmake ../QtJsonSerializer
+      working-directory: build
+    - name: make QtJsonSerializer
+      run: make
+      working-directory: build
+    - name: make all QtJsonSerializer
+      if: matrix.test
+      run: make all
+      working-directory: hello-world
+    - name: test QtJsonSerializer
+      if: matrix.test
+      run: make -j1 run-tests
+      working-directory: hello-world
