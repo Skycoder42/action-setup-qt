@@ -135,6 +135,12 @@ jobs:
       if: matrix.test
       run: make all
       working-directory: QtJsonSerializer
+    - name: Fix clang_64 rpath
+      if: matrix.platform == 'clang_64'
+      run: |
+        otool -l tst_serializer
+        install_name_tool -add_rpath @executable_path/../../../../lib a.out
+      working-directory: QtJsonSerializer/tests/auto/jsonserializer/SerializerTest
     - name: test QtJsonSerializer
       if: matrix.test
       run: make run-tests
