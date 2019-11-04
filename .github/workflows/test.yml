@@ -103,7 +103,7 @@ jobs:
       if: contains(matrix.platform, 'msvc')
       with:
         arch: ${{matrix.vcarch}}
-        #toolset: 14.16
+        toolset: 14.16
         uwp: ${{contains(matrix.platform, 'winrt')}}
     - uses: Skycoder42/action-setup-qt@master
       with:
