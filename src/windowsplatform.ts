@@ -45,7 +45,6 @@ export class MsvcPlatform extends WindowsPlatform
 {
     public addExtraEnvVars(basePath: string): void {
         core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\")
-        core.exportVariable("VSCMD_DEBUG", "3");
     }
 
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
