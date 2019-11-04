@@ -132,27 +132,13 @@ jobs:
     - name: make QtJsonSerializer
       run: make
       working-directory: build
-    - name: MingwTest 1
-      if: contains(matrix.platform, 'mingw')
-      run: type qjsoncborconverter_p.h
-      working-directory: build\include\QtJsonSerializer\4.0.0\QtJsonSerializer\private
-    - name: MingwTest 2
-      if: contains(matrix.platform, 'mingw')
-      run: type qjsonchronodurationconverter_p.h
-      working-directory: build\include\QtJsonSerializer\4.0.0\QtJsonSerializer\private
+    - name: enable long paths
+      if: contains(matrix.os, 'windows')
+      run: REG ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1
     - name: make all QtJsonSerializer
       if: matrix.test
       run: make all
       working-directory: build
-      continue-on-error: true
-    - name: MingwTest 1
-      if: contains(matrix.platform, 'mingw')
-      run: type qjsoncborconverter_p.h
-      working-directory: build\include\QtJsonSerializer\4.0.0\QtJsonSerializer\private
-    - name: MingwTest 2
-      if: contains(matrix.platform, 'mingw')
-      run: type qjsonchronodurationconverter_p.h
-      working-directory: build\include\QtJsonSerializer\4.0.0\QtJsonSerializer\private
     - name: test QtJsonSerializer
       if: matrix.test
       run: make run-tests
