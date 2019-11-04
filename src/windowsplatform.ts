@@ -19,11 +19,8 @@ export abstract class WindowsPlatform implements IPlatform
     }
     
     public abstract installPlatform(): string
+    public abstract addExtraEnvVars(basePath: string): void;
     public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
-
-    public addExtraEnvVars(basePath: string): void {
-        core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise")
-    }
 
     public extraPackages(): string[] | null {
         return null;
@@ -46,6 +43,10 @@ export abstract class WindowsPlatform implements IPlatform
 
 export class MsvcPlatform extends WindowsPlatform
 {
+    public addExtraEnvVars(basePath: string): void {
+        core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise")
+    }
+
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
         await this.runQtInstaller(tool, args);
         const makePath = path.join(instDir, this.version, this.platform, "bin", "make.cmd");
