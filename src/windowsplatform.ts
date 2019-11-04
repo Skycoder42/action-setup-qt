@@ -21,7 +21,9 @@ export abstract class WindowsPlatform implements IPlatform
     public abstract installPlatform(): string
     public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
 
-    public addExtraEnvVars(basePath: string): void {}
+    public addExtraEnvVars(basePath: string): void {
+        core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise")
+    }
 
     public extraPackages(): string[] | null {
         return null;
@@ -48,8 +50,6 @@ export class MsvcPlatform extends WindowsPlatform
         await this.runQtInstaller(tool, args);
         const makePath = path.join(instDir, this.version, this.platform, "bin", "make.cmd");
         await fs.writeFile(makePath, "@nmake");
-        if (this.platform.includes("winrt"))
-            await fs.symlink("C:\\Program Files (x86)\\Microsoft Visual Studio\\2017", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019", 'dir');
     }
 
     public installPlatform(): string {
