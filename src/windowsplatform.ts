@@ -50,7 +50,7 @@ export class MsvcPlatform extends WindowsPlatform
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
         await this.runQtInstaller(tool, args);
         const makePath = path.join(instDir, this.version, this.platform, "bin", "make.cmd");
-        await fs.writeFile(makePath, "@nmake");
+        await fs.writeFile(makePath, "@nmake %*");
     }
 
     public installPlatform(): string {
