@@ -126,20 +126,20 @@ jobs:
       run: make test
       working-directory: hello-world
     - run: mkdir build
-    - name: qmake QtJsonSerializer
-      run: qmake ../QtJsonSerializer
-      working-directory: build
-    - name: make QtJsonSerializer
-      run: make
-      working-directory: build
     - name: enable long paths
       if: contains(matrix.os, 'windows')
-      run: REG ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1
+      run: "subst X: %CD%"
+    - name: qmake QtJsonSerializer
+      run: qmake ../QtJsonSerializer
+      working-directory: "X:/build"
+    - name: make QtJsonSerializer
+      run: make
+      working-directory: "X:/build"
     - name: make all QtJsonSerializer
       if: matrix.test
       run: make all
-      working-directory: build
+      working-directory: "X:/build"
     - name: test QtJsonSerializer
       if: matrix.test
       run: make run-tests
-      working-directory: build
+      working-directory: "X:/build"
