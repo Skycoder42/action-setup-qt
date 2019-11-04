@@ -135,8 +135,8 @@ jobs:
     - name: make all QtJsonSerializer
       if: matrix.test
       run: make all
-      working-directory: hello-world
+      working-directory: build
     - name: test QtJsonSerializer
       if: matrix.test
       run: make -j1 run-tests
-      working-directory: hello-world
+      working-directory: build
