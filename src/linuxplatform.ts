@@ -14,7 +14,7 @@ export class LinuxPlatform extends UnixPlatform
     }
 
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
-        await ex.exec("sudo", ["apt-get", "-qq", "install", "libgl1-mesa-dev"]);
+        await ex.exec("sudo", ["apt-get", "-qq", "install", "libgl1-mesa-dev", "doxygen", "doxyqml"]);
 		await fs.chmod(tool, 0o755);
 		const options: any = {};
 		options.env = {
