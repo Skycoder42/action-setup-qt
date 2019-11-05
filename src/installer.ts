@@ -47,7 +47,9 @@ export class Installer
 	public async getQt(packages: string, iArgs: string): Promise<void> {
 		// install qdep
 		const pythonPath: string = await io.which('python', true);
+		core.debug(`Using python: ${pythonPath}`);
 		await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
+		core.info("Installed qdep");
 		
 		// check cache for Qt installation
 		let toolPath: string | null = tc.find('qt', this.version, this.platform.platform);
@@ -58,6 +60,7 @@ export class Installer
 			core.debug('Qt installation is cached under ' + toolPath);
 		}
 	
+		// update env vars
 		core.addPath(path.join(toolPath, "bin"));
 		this.platform.addExtraEnvVars(toolPath);
 		await ex.exec("qmake", ["-version"]);
@@ -91,11 +94,13 @@ export class Installer
 		await fs.mkdir(path.join(this.tempDir, 'home'));
 		await fs.writeFile(scriptPath, this.generateScript(installPath, packages));
 		await this.platform.runInstaller(downloadPath, ["--script", scriptPath].concat(iArgs.split(" ")), installPath);
+		core.info(`Installed Qt ${this.version} for ${this.platform.platform}`);
 		
 		// add qdep prf file
 		const qmakePath: string = path.join(installPath, this.version, this.platform.platform, "bin", this.platform.qmakeName());
 		const qdepPath: string = await io.which('qdep', true)
 		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
+		core.info("Successfully prepared qdep");
 	
 		// install into the local tool cache
 		return await tc.cacheDir(path.join(installPath, this.version, this.platform.platform), 'qt', this.version, this.platform.platform);
