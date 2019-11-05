@@ -28,7 +28,7 @@ export class LinuxPlatform extends UnixPlatform
 export class AndroidPlatform extends LinuxPlatform
 {
     public addExtraEnvVars(basePath: string): void {
-        console.log(process.env)
+        super.addExtraEnvVars(basePath);
         core.exportVariable("ANDROID_SDK_ROOT", String(process.env["ANDROID_HOME"]));
         core.exportVariable("ANDROID_NDK_ROOT", path.join(String(process.env["ANDROID_HOME"]), "ndk-bundle"));
     }
