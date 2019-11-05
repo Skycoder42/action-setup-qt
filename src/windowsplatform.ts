@@ -17,10 +17,10 @@ export abstract class WindowsPlatform implements IPlatform
         this.version = version;
     }
     
+    public abstract setupInstallDir(): [string, string]
     public abstract installPlatform(): string
     public abstract addExtraEnvVars(basePath: string): void;
     public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
-    public abstract formatInstallDir(instDir: string): string
 
     public extraPackages(): string[] | null {
         return null;
@@ -43,6 +43,11 @@ export abstract class WindowsPlatform implements IPlatform
 
 export class MsvcPlatform extends WindowsPlatform
 {
+    public setupInstallDir(): [string, string] {
+        const instDir: string = "C:\\Users\\runneradmin\\install";
+        return [instDir, instDir.substr(2)];
+    }
+
     public addExtraEnvVars(basePath: string): void {
         core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\")
     }
@@ -69,10 +74,6 @@ export class MsvcPlatform extends WindowsPlatform
             throw `Unsupported platform ${this.platform}`;
         }
     }
-
-    public formatInstallDir(instDir: string): string {
-        return instDir;
-    }
 }
 
 export class MingwPlatform extends WindowsPlatform
@@ -82,6 +83,11 @@ export class MingwPlatform extends WindowsPlatform
     public constructor(platform: string, version: string) {
         super(platform, version);
         this.isX64 = (platform == "mingw73_64");
+    }
+    
+    public setupInstallDir(): [string, string] {
+        const instDir: string = "C:\\Users\\runneradmin\\install";
+        return [instDir, instDir.substr(2).replace(/\\/g, "/")];
     }
 
     public addExtraEnvVars(basePath: string): void {
@@ -108,9 +114,5 @@ export class MingwPlatform extends WindowsPlatform
             return "win64_mingw73";
         else
             return "win32_mingw73";
-    }
-
-    public formatInstallDir(instDir: string): string {
-        return "/" + instDir.substr(3).replace(/(?:\\|:)/g, "/");
     }
 }

@@ -65,9 +65,11 @@ export class Installer
 		this.platform.addExtraEnvVars(toolPath);
 		await ex.exec("qmake", ["-version"]);
 
-		// set install dir
-		await io.mkdirP("install");
-		core.setOutput('installdir', this.platform.formatInstallDir(path.join(process.cwd(), "install")));
+		// set install dir, create artifact symlink
+		const iPath: [string, string] = this.platform.setupInstallDir();
+		await io.mkdirP(iPath[0]);
+		await fs.symlink(path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), ".."), "install_link", 'dir');
+		core.setOutput('installdir', iPath[1]);
 	}
 
 	private initTempDir(platform: string): string {
