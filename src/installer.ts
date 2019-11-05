@@ -64,6 +64,9 @@ export class Installer
 		core.addPath(path.join(toolPath, "bin"));
 		this.platform.addExtraEnvVars(toolPath);
 		await ex.exec("qmake", ["-version"]);
+
+		// set install dir
+		core.setOutput('installdir', this.platform.formatInstallDir(process.cwd()));
 	}
 
 	private initTempDir(platform: string): string {

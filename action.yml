@@ -14,6 +14,9 @@ inputs:
   install-args:
     description: 'Extra arguments to be passed to the Qt maintenance installation'
     default: '--addRepository https://install.skycoder42.de/qtmodules/linux_x64'
+outputs:
+  installdir:
+    description: 'The path to install stuff to before packing them as artifact'
 runs:
   using: 'node12'
   main: 'lib/setup-qt.js'

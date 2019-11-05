@@ -20,6 +20,7 @@ export abstract class WindowsPlatform implements IPlatform
     public abstract installPlatform(): string
     public abstract addExtraEnvVars(basePath: string): void;
     public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
+    public abstract formatInstallDir(instDir: string): string
 
     public extraPackages(): string[] | null {
         return null;
@@ -68,6 +69,10 @@ export class MsvcPlatform extends WindowsPlatform
             throw `Unsupported platform ${this.platform}`;
         }
     }
+
+    public formatInstallDir(instDir: string): string {
+        return instDir;
+    }
 }
 
 export class MingwPlatform extends WindowsPlatform
@@ -103,5 +108,9 @@ export class MingwPlatform extends WindowsPlatform
             return "win64_mingw73";
         else
             return "win32_mingw73";
+    }
+
+    public formatInstallDir(instDir: string): string {
+        return "/" + instDir.substr(3).replace(/(?:\\|:)/g, "/");
     }
 }

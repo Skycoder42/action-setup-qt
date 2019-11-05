@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 import { IPlatform } from "./platform";
 
 export abstract class UnixPlatform implements IPlatform
@@ -23,5 +25,9 @@ export abstract class UnixPlatform implements IPlatform
 
     public installPlatform(): string {
         return this.platform;
+    }
+
+    public formatInstallDir(instDir: string): string {
+        return instDir;
     }
 }
