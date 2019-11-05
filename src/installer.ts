@@ -66,7 +66,8 @@ export class Installer
 		await ex.exec("qmake", ["-version"]);
 
 		// set install dir
-		core.setOutput('installdir', this.platform.formatInstallDir(process.cwd()));
+		await io.mkdirP("install");
+		core.setOutput('installdir', this.platform.formatInstallDir(path.join(process.cwd(), "install")));
 	}
 
 	private initTempDir(platform: string): string {
