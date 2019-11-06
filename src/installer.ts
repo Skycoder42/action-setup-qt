@@ -54,23 +54,30 @@ export class Installer
 		
 		// check caches for Qt installation
 		let toolPath: string | null = null;
-		if (cached && fssync.existsSync(path.join(cached, "bin", this.platform.qmakeName()))) {
-			toolPath = cached;
-		} else
+		if (cached && fssync.existsSync(path.join(cached, "bin", this.platform.qmakeName())))
+			toolPath = await tc.cacheDir(cached, 'qt', this.version, this.platform.platform);
+		else
 			toolPath = tc.find('qt', this.version, this.platform.platform);
 	
 		// download, extract, cache
-		await this.platform.runPreInstaller(Boolean(toolPath));
 		if (!toolPath) {
+			await this.platform.runPreInstaller(false);
 			toolPath = await this.acquireQt(packages, iArgs);
 			core.debug('Qt installation is cached under ' + toolPath);
-		}
+		} else
+			await this.platform.runPreInstaller(true);
+		core.setOutput("qtdir", toolPath);
 		await this.platform.runPostInstaller();
 	
 		// update env vars
 		core.addPath(path.join(toolPath, "bin"));
 		this.platform.addExtraEnvVars(toolPath);
 		await ex.exec("qmake", ["-version"]);
+		await ex.exec("qmake", ["-query"]);
+
+		// set outputs
+		core.setOutput("tests", String(this.shouldTest()));
+		core.setOutput("testflags", this.platform.testFlags());
 
 		// set install dir, create artifact symlink
 		const iPath: [string, string] = this.platform.setupInstallDir();
@@ -128,5 +135,16 @@ export class Installer
 		if (extraPkgs)
 			modules = modules.concat(extraPkgs);
 		return qtScript.generateScript(path, modules);
+	}
+
+	private shouldTest(): boolean {
+		const platform = this.platform.platform;
+		if (platform.includes("android") ||
+			platform.includes("wasm") ||
+			platform.includes("winrt") ||
+			platform.includes("ios"))
+			return false;
+		else
+			return true;
 	}
 }

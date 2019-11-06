@@ -22,6 +22,10 @@ export abstract class WindowsPlatform implements IPlatform
     public abstract addExtraEnvVars(basePath: string): void;
     public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
 
+    testFlags(): string {
+        return "";
+    }
+
     public extraPackages(): string[] | null {
         return null;
     }

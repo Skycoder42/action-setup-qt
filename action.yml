@@ -18,11 +18,17 @@ inputs:
     description: 'Extra arguments to be passed to the Qt maintenance installation'
     required: false
     default: '--addRepository https://install.skycoder42.de/qtmodules/linux_x64'
-  cached:
-    description: 'Set to the path of a cached Qt installation and does not need to be installed again'
+  cachedir:
+    description: 'A path to a Qt installation, downloaded from cache'
     required: false
     default: ''
 outputs:
+  tests:
+    description: 'Set to true if tests should be run, false otherwise'
+  testflags:
+    description: 'makeflags to be used when running tests'
+  qtdir:
+    description: 'The path where qt was installed'
   installdir:
     description: 'The path to install stuff to before packing them as artifact'
 runs:
