@@ -4,16 +4,24 @@ author: 'Skycoder42'
 inputs: 
   version:
     description: 'The Qt version to download and install. Example: 5.13.1'
-    default: '5.13.1'
+    required: true
+    default: '5.13.2'
   platform:
     description: 'A version dependend platform package to be installed. Example: gcc_64'
+    required: true
     default: 'gcc_64'
   packages:
     description: 'A comma seperated list of additional packages to be installed per platform selected. Example: qtnetworkauth,qtwebengine'
+    required: false
     default: ''
   install-args:
     description: 'Extra arguments to be passed to the Qt maintenance installation'
+    required: false
     default: '--addRepository https://install.skycoder42.de/qtmodules/linux_x64'
+  cached:
+    description: 'Set to the path of a cached Qt installation and does not need to be installed again'
+    required: false
+    default: ''
 outputs:
   installdir:
     description: 'The path to install stuff to before packing them as artifact'

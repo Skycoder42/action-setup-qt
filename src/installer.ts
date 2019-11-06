@@ -1,5 +1,6 @@
 import * as os from 'os';
 import { promises as fs } from 'fs';
+import * as fssync from 'fs';
 import * as path from 'path';
 
 import * as core from '@actions/core';
@@ -44,18 +45,22 @@ export class Installer
 		}
 	}
 
-	public async getQt(packages: string, iArgs: string): Promise<void> {
+	public async getQt(packages: string, iArgs: string, cached: string): Promise<void> {
 		// install qdep
 		const pythonPath: string = await io.which('python', true);
 		core.debug(`Using python: ${pythonPath}`);
 		await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
 		core.info("Installed qdep");
 		
-		// check cache for Qt installation
-		let toolPath: string | null = tc.find('qt', this.version, this.platform.platform);
+		// check caches for Qt installation
+		let toolPath: string | null = null;
+		if (cached && fssync.existsSync(cached)) {
+			toolPath = cached;
+		} else
+			toolPath = tc.find('qt', this.version, this.platform.platform);
 	
+		// download, extract, cache
 		if (!toolPath) {
-			// download, extract, cache
 			toolPath = await this.acquireQt(packages, iArgs);
 			core.debug('Qt installation is cached under ' + toolPath);
 		}
