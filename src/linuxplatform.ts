@@ -13,8 +13,11 @@ export class LinuxPlatform extends UnixPlatform
         return `qt-unified-linux-${os.arch()}-online.run`;
     }
 
-    public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
+    public async runPreInstaller(_cacheHit: boolean): Promise<void> {
         await ex.exec("sudo", ["apt-get", "-qq", "install", "libgl1-mesa-dev", "doxygen", "doxyqml"]);
+    }
+
+    public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
 		await fs.chmod(tool, 0o755);
 		const options: any = {};
 		options.env = {

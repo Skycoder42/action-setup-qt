@@ -28,6 +28,10 @@ export abstract class UnixPlatform implements IPlatform
         return "qmake";
     } 
 
+    public async runPreInstaller(_cacheHit: boolean): Promise<void> {}
+    
+    public async runPostInstaller(): Promise<void> {}
+
     public installPlatform(): string {
         return this.platform;
     }

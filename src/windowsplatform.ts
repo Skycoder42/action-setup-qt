@@ -34,6 +34,10 @@ export abstract class WindowsPlatform implements IPlatform
         return "qmake.exe";
     }
 
+    public async runPreInstaller(_cacheHit: boolean): Promise<void> {}
+
+    public async runPostInstaller(): Promise<void> {}
+
     protected async runQtInstaller(tool: string, args: string[]): Promise<void> {
         let exePath = tool + ".exe";
 		await io.mv(tool, exePath);

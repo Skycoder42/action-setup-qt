@@ -54,16 +54,18 @@ export class Installer
 		
 		// check caches for Qt installation
 		let toolPath: string | null = null;
-		if (cached && fssync.existsSync(cached)) {
+		if (cached && fssync.existsSync(path.join(cached, "bin", this.platform.qmakeName()))) {
 			toolPath = cached;
 		} else
 			toolPath = tc.find('qt', this.version, this.platform.platform);
 	
 		// download, extract, cache
+		await this.platform.runPreInstaller(Boolean(toolPath));
 		if (!toolPath) {
 			toolPath = await this.acquireQt(packages, iArgs);
 			core.debug('Qt installation is cached under ' + toolPath);
 		}
+		await this.platform.runPostInstaller();
 	
 		// update env vars
 		core.addPath(path.join(toolPath, "bin"));
