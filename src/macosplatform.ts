@@ -17,8 +17,6 @@ export class MacosPlatform extends UnixPlatform
 	}
 
     public async runPreInstaller(_cacheHit: boolean): Promise<void> {
-		await ex.exec("which", ["make"]);
-		await ex.exec("make", ["--version"]);
 		await ex.exec("brew", ["install", "make"]);
 	}
 
@@ -31,10 +29,9 @@ export class MacosPlatform extends UnixPlatform
 		};
 		const vPath: string = glob.sync("/Volumes/qt-unified-mac-x64-*-online/qt-unified-mac-x64-*-online.app/Contents/MacOS/qt-unified-mac-x64-*-online")[0];
 		await ex.exec(vPath, args, options);
-	} 
+	}
 	
     public async runPostInstaller(): Promise<void> {
 		await ex.exec("which", ["make"]);
-		await ex.exec("make", ["--version"]);
 	}
 }
