@@ -66,12 +66,15 @@ export class Installer
 			core.debug('Qt installation is cached under ' + toolPath);
 		} else
 			await this.platform.runPreInstaller(true);
+
+		// update output / env vars
 		core.setOutput("qtdir", toolPath);
-		await this.platform.runPostInstaller();
-	
-		// update env vars
 		core.addPath(path.join(toolPath, "bin"));
 		this.platform.addExtraEnvVars(toolPath);
+
+		// run post installer
+		await this.platform.runPostInstaller();
+	
 		await ex.exec("qmake", ["-version"]);
 		await ex.exec("qmake", ["-query"]);
 

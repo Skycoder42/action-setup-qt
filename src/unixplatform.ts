@@ -30,7 +30,7 @@ export abstract class UnixPlatform implements IPlatform
 
     public qmakeName(): string {
         return "qmake";
-    } 
+    }
 
     public async runPreInstaller(_cacheHit: boolean): Promise<void> {}
     
