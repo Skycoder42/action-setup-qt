@@ -111,10 +111,12 @@ export class MingwPlatform extends WindowsPlatform
 
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
         await this.runQtInstaller(tool, args);
+        const mingwPath = path.join(instDir, this.version, this.platform, "mingw");
         if (this.isX64)
-            await io.mv(path.join(instDir, "Tools", "mingw730_64"), path.join(instDir, this.version, this.platform, "mingw"));
+            await io.mv(path.join(instDir, "Tools", "mingw730_64"), mingwPath);
         else
-            await io.mv(path.join(instDir, "Tools", "mingw730_32"), path.join(instDir, this.version, this.platform, "mingw"));
+            await io.mv(path.join(instDir, "Tools", "mingw730_32"), mingwPath);
+        await fs.writeFile(path.join(mingwPath, "bin", "make.cmd"), "@mingw32-make %*");
     }
 
     public installPlatform(): string {
