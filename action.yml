@@ -23,6 +23,8 @@ inputs:
     required: false
     default: ''
 outputs:
+  make:
+    description: 'Name of the "make" executable to be used, i.e. name, nmake or mingw32-make'
   tests:
     description: 'Set to true if tests should be run, false otherwise'
   testflags:

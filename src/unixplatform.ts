@@ -13,11 +13,15 @@ export abstract class UnixPlatform implements IPlatform
     public abstract installerName(): string;
     public abstract runInstaller(tool: string, args: string[], instDir: string): Promise<void>;
 
-    testFlags(): string {
+    public makeName(): string {
+        return "make";
+    }
+
+    public testFlags(): string {
         return "-j1";
     }
 
-    setupInstallDir(): [string, string] {
+    public setupInstallDir(): [string, string] {
         const instDir: string = path.join(process.cwd(), "install");
         return [instDir, instDir];
     }

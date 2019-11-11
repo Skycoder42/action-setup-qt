@@ -2,6 +2,7 @@ export interface IPlatform
 {
     platform: string;
 
+    makeName(): string
     testFlags(): string
     setupInstallDir(): [string, string]
     addExtraEnvVars(basePath: string): void

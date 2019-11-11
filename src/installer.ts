@@ -55,18 +55,23 @@ export class Installer
 		// check caches for Qt installation
 		let toolPath: string | null = null;
 		if (cachedir) {
-			if (fssync.existsSync(path.join(cachedir, "bin", this.platform.qmakeName())))
-				toolPath = cachedir;
+			if (fssync.existsSync(path.join(cachedir, "bin", this.platform.qmakeName()))) {
+				toolPath = path.resolve(cachedir);
+				core.debug('Using globally cached Qt: ' + toolPath);
+			}
 		} else
 			toolPath = tc.find('qt', this.version, this.platform.platform);
 	
 		// download, extract, cache
 		if (!toolPath) {
 			await this.platform.runPreInstaller(false);
+			core.debug('Downloading and installing Qt from online installer');
 			toolPath = await this.acquireQt(packages, iArgs, cachedir);
-			core.debug('Qt installation is cached under ' + toolPath);
-		} else
+		} else {
 			await this.platform.runPreInstaller(true);
+			core.debug('Using locally cached Qt: ' + toolPath);
+		}
+		core.info('Using Qt installation: ' + toolPath);
 
 		// update output / env vars
 		core.setOutput("qtdir", toolPath);
@@ -80,6 +85,7 @@ export class Installer
 		await ex.exec("qmake", ["-query"]);
 
 		// set outputs
+		core.setOutput("make", this.platform.makeName());
 		core.setOutput("tests", String(this.shouldTest()));
 		core.setOutput("testflags", this.platform.testFlags());
 
@@ -129,7 +135,7 @@ export class Installer
 		// install into the local tool cache or global cache
 		if (cachedir) {
 			await io.mv(path.join(installPath, this.version, this.platform.platform), cachedir);
-			return cachedir;
+			return path.resolve(cachedir);
 		} else
 			return await tc.cacheDir(path.join(installPath, this.version, this.platform.platform), 'qt', this.version, this.platform.platform);
 	}

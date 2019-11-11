@@ -17,6 +17,7 @@ export abstract class WindowsPlatform implements IPlatform
         this.version = version;
     }
     
+    public abstract makeName(): string
     public abstract setupInstallDir(): [string, string]
     public abstract installPlatform(): string
     public abstract addExtraEnvVars(basePath: string): void;
@@ -51,6 +52,10 @@ export abstract class WindowsPlatform implements IPlatform
 
 export class MsvcPlatform extends WindowsPlatform
 {
+    public makeName(): string {
+        return "nmake";
+    }
+
     public setupInstallDir(): [string, string] {
         const instDir: string = "C:\\Users\\runneradmin\\install";
         return [instDir, instDir.substr(2)];
@@ -91,6 +96,10 @@ export class MingwPlatform extends WindowsPlatform
     public constructor(platform: string, version: string) {
         super(platform, version);
         this.isX64 = (platform == "mingw73_64");
+    }
+
+    public makeName(): string {
+        return "mingw32-make";
     }
     
     public setupInstallDir(): [string, string] {
