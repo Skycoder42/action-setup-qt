@@ -1,5 +1,4 @@
 import * as path from 'path';
-import { promises as fs } from 'fs';
 
 import * as core from '@actions/core';
 import * as io from '@actions/io';
@@ -65,10 +64,8 @@ export class MsvcPlatform extends WindowsPlatform
         core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\")
     }
 
-    public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
+    public async runInstaller(tool: string, args: string[], _instDir: string): Promise<void> {
         await this.runQtInstaller(tool, args);
-        const makePath = path.join(instDir, this.version, this.platform, "bin", "make.cmd");
-        await fs.writeFile(makePath, "@nmake %*");
     }
 
     public installPlatform(): string {
@@ -125,7 +122,6 @@ export class MingwPlatform extends WindowsPlatform
             await io.mv(path.join(instDir, "Tools", "mingw730_64"), mingwPath);
         else
             await io.mv(path.join(instDir, "Tools", "mingw730_32"), mingwPath);
-        await fs.writeFile(path.join(mingwPath, "bin", "make.cmd"), "@mingw32-make %*");
     }
 
     public installPlatform(): string {
