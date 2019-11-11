@@ -24,12 +24,12 @@
     "@actions/io": "^1.0.0",
     "@actions/tool-cache": "^1.0.0",
     "@types/glob": "^7.1.1",
-    "glob": "latest",
+    "glob": "^7.1.6",
     "semver": "^6.1.1"
   },
   "devDependencies": {
-    "@types/node": "^12.12.5",
+    "@types/node": "^12.12.7",
     "@types/semver": "^6.0.0",
-    "typescript": "^3.5.1"
+    "typescript": "^3.7.2"
   }
 }

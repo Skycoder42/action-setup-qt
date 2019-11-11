@@ -45,7 +45,7 @@ export class Installer
 		}
 	}
 
-	public async getQt(packages: string, iArgs: string, cached: string): Promise<void> {
+	public async getQt(packages: string, iArgs: string, cachedir: string): Promise<void> {
 		// install qdep
 		const pythonPath: string = await io.which('python', true);
 		core.debug(`Using python: ${pythonPath}`);
@@ -54,15 +54,16 @@ export class Installer
 		
 		// check caches for Qt installation
 		let toolPath: string | null = null;
-		if (cached && fssync.existsSync(path.join(cached, "bin", this.platform.qmakeName())))
-			toolPath = await tc.cacheDir(cached, 'qt', this.version, this.platform.platform);
-		else
+		if (cachedir) {
+			if (fssync.existsSync(path.join(cachedir, "bin", this.platform.qmakeName())))
+				toolPath = cachedir;
+		} else
 			toolPath = tc.find('qt', this.version, this.platform.platform);
 	
 		// download, extract, cache
 		if (!toolPath) {
 			await this.platform.runPreInstaller(false);
-			toolPath = await this.acquireQt(packages, iArgs);
+			toolPath = await this.acquireQt(packages, iArgs, cachedir);
 			core.debug('Qt installation is cached under ' + toolPath);
 		} else
 			await this.platform.runPreInstaller(true);
@@ -107,7 +108,7 @@ export class Installer
 		return tempDirectory;
 	}
 
-	private async acquireQt(packages: string, iArgs: string): Promise<string> {
+	private async acquireQt(packages: string, iArgs: string, cachedir: string): Promise<string> {
 		// download the installer
 		const downloadPath: string = await tc.downloadTool(`https://download.qt.io/official_releases/online_installers/${this.platform.installerName()}`);
 	
@@ -125,8 +126,12 @@ export class Installer
 		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
 		core.info("Successfully prepared qdep");
 	
-		// install into the local tool cache
-		return await tc.cacheDir(path.join(installPath, this.version, this.platform.platform), 'qt', this.version, this.platform.platform);
+		// install into the local tool cache or global cache
+		if (cachedir) {
+			await io.mv(path.join(installPath, this.version, this.platform.platform), cachedir);
+			return cachedir;
+		} else
+			return await tc.cacheDir(path.join(installPath, this.version, this.platform.platform), 'qt', this.version, this.platform.platform);
 	}
 
 	private generateScript(path: string, packages: string): string {
