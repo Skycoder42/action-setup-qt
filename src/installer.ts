@@ -93,8 +93,9 @@ export class Installer
 		// set install dir, create artifact symlink
 		const iPath: [string, string] = this.platform.setupInstallDir(toolPath);
 		await io.mkdirP(iPath[0]);
-		await fs.symlink(path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), ".."), "install_link", 'dir');
+		const instPath = path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), "..", "..");
 		core.setOutput('installdir', iPath[1]);
+		core.setOutput('outdir', instPath);
 	}
 
 	private initTempDir(platform: string): string {
