@@ -17,7 +17,7 @@ export abstract class WindowsPlatform implements IPlatform
     }
     
     public abstract makeName(): string
-    public abstract setupInstallDir(): [string, string]
+    public abstract setupInstallDir(toolPath: string): [string, string]
     public abstract installPlatform(): string
     public abstract addExtraEnvVars(basePath: string): void;
     public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
@@ -55,8 +55,8 @@ export class MsvcPlatform extends WindowsPlatform
         return "nmake";
     }
 
-    public setupInstallDir(): [string, string] {
-        const instDir: string = "C:\\Users\\runneradmin\\install";
+    public setupInstallDir(toolPath: string): [string, string] {
+        const instDir = `${toolPath.substr(0, 2)}\\Users\\runneradmin\\install`;
         return [instDir, instDir.substr(2)];
     }
 
@@ -99,8 +99,8 @@ export class MingwPlatform extends WindowsPlatform
         return "mingw32-make";
     }
     
-    public setupInstallDir(): [string, string] {
-        const instDir: string = "C:\\Users\\runneradmin\\install";
+    public setupInstallDir(toolPath: string): [string, string] {
+        const instDir: string = `${toolPath.substr(0, 2)}\\Users\\runneradmin\\install`;
         return [instDir, instDir.substr(2).replace(/\\/g, "/")];
     }
 

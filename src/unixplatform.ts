@@ -21,7 +21,7 @@ export abstract class UnixPlatform implements IPlatform
         return "-j1";
     }
 
-    public setupInstallDir(): [string, string] {
+    public setupInstallDir(_toolPath: string): [string, string] {
         const instDir: string = path.join(process.cwd(), "install");
         return [instDir, instDir];
     }

@@ -4,7 +4,7 @@ export interface IPlatform
 
     makeName(): string
     testFlags(): string
-    setupInstallDir(): [string, string]
+    setupInstallDir(toolPath: string): [string, string]
     addExtraEnvVars(basePath: string): void
     installerName(): string
     extraPackages(): Array<string> | null

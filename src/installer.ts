@@ -91,7 +91,7 @@ export class Installer
 		core.setOutput("testflags", this.platform.testFlags());
 
 		// set install dir, create artifact symlink
-		const iPath: [string, string] = this.platform.setupInstallDir();
+		const iPath: [string, string] = this.platform.setupInstallDir(toolPath);
 		await io.mkdirP(iPath[0]);
 		await fs.symlink(path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), ".."), "install_link", 'dir');
 		core.setOutput('installdir', iPath[1]);
