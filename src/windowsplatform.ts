@@ -16,23 +16,10 @@ export abstract class WindowsPlatform implements IPlatform
         this.version = version;
     }
     
-    public abstract makeName(): string
-    public abstract setupInstallDir(toolPath: string): [string, string]
-    public abstract installPlatform(): string
+    public abstract aqtArgs(): [string, string, string];
     public abstract addExtraEnvVars(basePath: string): void;
-    public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
-
-    testFlags(): string {
-        return "";
-    }
-
-    public extraPackages(): string[] | null {
-        return null;
-    }
-
-    public installerName(): string {
-        return "qt-unified-windows-x86-online.exe";
-    }
+    public abstract makeName(): string;
+    public abstract setupInstallDir(toolPath: string): [string, string];
 
     public qmakeName(): string {
         return "qmake.exe";
@@ -40,17 +27,26 @@ export abstract class WindowsPlatform implements IPlatform
 
     public async runPreInstaller(_cacheHit: boolean): Promise<void> {}
 
-    public async runPostInstaller(): Promise<void> {}
+    public async runPostInstaller(_cacheHit: boolean, _installDir: string): Promise<void> {}
 
-    protected async runQtInstaller(tool: string, args: string[]): Promise<void> {
-        let exePath = tool + ".exe";
-		await io.mv(tool, exePath);
-		await ex.exec(exePath, args);
+    public testFlags(): string {
+        return "";
     }
 }
 
 export class MsvcPlatform extends WindowsPlatform
 {
+    public aqtArgs(): [string, string, string] {
+        if (this.platform.includes("winrt"))
+            return ["windows", "winrt", this.installPlatform()];
+        else
+            return ["windows", "desktop", this.installPlatform()];
+    }
+
+    public addExtraEnvVars(_basePath: string): void {
+        core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\")
+    }
+
     public makeName(): string {
         return "nmake";
     }
@@ -60,15 +56,7 @@ export class MsvcPlatform extends WindowsPlatform
         return [instDir, instDir.substr(2)];
     }
 
-    public addExtraEnvVars(basePath: string): void {
-        core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\")
-    }
-
-    public async runInstaller(tool: string, args: string[], _instDir: string): Promise<void> {
-        await this.runQtInstaller(tool, args);
-    }
-
-    public installPlatform(): string {
+    private installPlatform(): string {
         switch (this.platform) {
         case "msvc2017_64":
             return "win64_msvc2017_64";
@@ -95,6 +83,27 @@ export class MingwPlatform extends WindowsPlatform
         this.isX64 = (platform == "mingw73_64");
     }
 
+    public aqtArgs(): [string, string, string] {
+        return ["windows", "desktop", this.installPlatform()];
+    }
+
+    public async runPostInstaller(cacheHit: boolean, installDir: string): Promise<void> {
+        if (!cacheHit) {
+            ex.exec("aqt", [
+                "tool",
+                "--outputdir", installDir,
+                "windows",
+                "tools_mingw",
+                "7.3.0-1-201903151311",
+                "qt.tools.win64_mingw730"
+            ]);
+        }
+    }
+
+    public addExtraEnvVars(basePath: string): void {
+        core.addPath(path.join(basePath, "Tools", this.isX64 ? "mingw730_64" : "mingw730_32", "bin"));
+    }
+
     public makeName(): string {
         return "mingw32-make";
     }
@@ -102,26 +111,6 @@ export class MingwPlatform extends WindowsPlatform
     public setupInstallDir(toolPath: string): [string, string] {
         const instDir: string = `${toolPath.substr(0, 2)}\\Users\\runneradmin\\install`;
         return [instDir, instDir.substr(2).replace(/\\/g, "/")];
-    }
-
-    public addExtraEnvVars(basePath: string): void {
-        core.addPath(path.join(basePath, "mingw", "bin"));
-    }
-
-    public extraPackages(): string[] | null {
-        if (this.isX64)
-            return ["qt.tools.win64_mingw73"];
-        else
-            return ["qt.tools.win32_mingw73"];
-    }
-
-    public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
-        await this.runQtInstaller(tool, args);
-        const mingwPath = path.join(instDir, this.version, this.platform, "mingw");
-        if (this.isX64)
-            await io.mv(path.join(instDir, "Tools", "mingw730_64"), mingwPath);
-        else
-            await io.mv(path.join(instDir, "Tools", "mingw730_32"), mingwPath);
     }
 
     public installPlatform(): string {

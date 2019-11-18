@@ -15,9 +15,9 @@ inputs:
     required: false
     default: ''
   install-args:
-    description: 'Extra arguments to be passed to the Qt maintenance installation'
+    description: 'Extra arguments to be passed to the aqt installation'
     required: false
-    default: '--addRepository https://install.skycoder42.de/qtmodules/linux_x64'
+    default: '--internal'
   cachedir:
     description: 'A path to a Qt installation, downloaded from cache'
     required: false

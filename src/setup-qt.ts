@@ -7,7 +7,7 @@ import { Installer } from './installer';
 async function run() {
 	try {
 		const installer = new Installer(core.getInput('version'), core.getInput('platform'));
-		await installer.getQt(core.getInput('packages'), core.getInput('install-args'), core.getInput('cachedir'));
+		await installer.getQt(core.getInput('packages'), core.getInput('cachedir'), core.getInput('install-args'));
 	} catch (error) {
 		console.log(error);
 		core.error(error.message);

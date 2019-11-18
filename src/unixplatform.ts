@@ -10,8 +10,17 @@ export abstract class UnixPlatform implements IPlatform
         this.platform = platform;
     }
 
-    public abstract installerName(): string;
-    public abstract runInstaller(tool: string, args: string[], instDir: string): Promise<void>;
+    public abstract aqtArgs(): [string, string, string];
+
+    public qmakeName(): string {
+        return "qmake";
+    }
+
+    public async runPreInstaller(_cacheHit: boolean): Promise<void> {}
+
+    public addExtraEnvVars(_basePath: string): void {}  
+    
+    public async runPostInstaller(_cacheHit: boolean, _installDir: string): Promise<void> {}
 
     public makeName(): string {
         return "make";
@@ -24,23 +33,5 @@ export abstract class UnixPlatform implements IPlatform
     public setupInstallDir(_toolPath: string): [string, string] {
         const instDir: string = path.join(process.cwd(), "install");
         return [instDir, instDir];
-    }
-
-    public addExtraEnvVars(_basePath: string): void {}  
-
-    public extraPackages(): string[] | null {
-        return null;
-    } 
-
-    public qmakeName(): string {
-        return "qmake";
-    }
-
-    public async runPreInstaller(_cacheHit: boolean): Promise<void> {}
-    
-    public async runPostInstaller(): Promise<void> {}
-
-    public installPlatform(): string {
-        return this.platform;
     }
 }

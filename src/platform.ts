@@ -2,15 +2,14 @@ export interface IPlatform
 {
     platform: string;
 
-    makeName(): string
-    testFlags(): string
-    setupInstallDir(toolPath: string): [string, string]
-    addExtraEnvVars(basePath: string): void
-    installerName(): string
-    extraPackages(): Array<string> | null
+    qmakeName(): string;
+
     runPreInstaller(cacheHit: boolean): Promise<void>;
-    runInstaller(tool: string, args: Array<string>, instDir: string): Promise<void>
-    runPostInstaller(): Promise<void>;
-    qmakeName(): string
-    installPlatform(): string
+    aqtArgs(): [string, string, string];
+    runPostInstaller(cacheHit: boolean, installDir: string): Promise<void>;
+
+    addExtraEnvVars(basePath: string): void;
+    makeName(): string;
+    testFlags(): string;
+    setupInstallDir(toolPath: string): [string, string];
 }
