@@ -23,7 +23,7 @@ export class Installer
 	private tempDir: string;
 
 	public constructor(version: string, platform: string) {
-		this.tempDir = this.initTempDir(platform);
+		this.tempDir = this.initTempDir(os.platform());
 		this.version = version;
 		switch (os.platform()) {
 		case "linux":
