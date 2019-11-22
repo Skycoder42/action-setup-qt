@@ -98,7 +98,7 @@ export class Installer
 		core.setOutput('outdir', instPath);
 	}
 
-	private initTempDir(platform: string): string {
+	private initTempDir(platform: NodeJS.Platform): string {
 		let tempDirectory: string = process.env['RUNNER_TEMP'] || ''
 		if (!tempDirectory) {
 			let baseLocation: string
