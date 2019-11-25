@@ -38,7 +38,9 @@ export abstract class WindowsPlatform implements IPlatform
         return "qmake.exe";
     }
 
-    public async runPreInstaller(_cacheHit: boolean): Promise<void> {}
+    public async runPreInstaller(_cacheHit: boolean): Promise<void> {
+        await ex.exec("choco", ["install", "openssl", "-y"]);
+    }
 
     public async runPostInstaller(): Promise<void> {}
 
