@@ -1,10 +1,12 @@
 import * as path from 'path';
+import * as fs from 'fs';
 
 import * as core from '@actions/core';
 import * as io from '@actions/io';
 import * as ex from '@actions/exec';
 
 import { IPlatform } from "./platform";
+import { fstat } from 'fs';
 
 export abstract class WindowsPlatform implements IPlatform
 {
@@ -19,12 +21,13 @@ export abstract class WindowsPlatform implements IPlatform
     public abstract makeName(): string
     public abstract setupInstallDir(toolPath: string): [string, string]
     public abstract installPlatform(): string
-    public abstract addExtraEnvVars(basePath: string): void;
     public abstract runInstaller(tool: string, args: string[], _instDir: string): Promise<void>
 
     testFlags(): string {
         return "";
     }
+
+    public addExtraEnvVars(_basePath: string): void {}
 
     public extraPackages(): string[] | null {
         return null;
@@ -62,12 +65,47 @@ export class MsvcPlatform extends WindowsPlatform
         return [instDir, instDir.substr(2)];
     }
 
-    public addExtraEnvVars(basePath: string): void {
-        core.exportVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\")
-    }
-
     public async runInstaller(tool: string, args: string[], _instDir: string): Promise<void> {
         await this.runQtInstaller(tool, args);
+    }
+
+    public async runPostInstaller(): Promise<void> {
+        // setup vcvarsall
+        for (let vsVersion of [2019, 2017]) {
+            const vsDir = `${process.env["ProgramFiles(x86)"]}\\Microsoft Visual Studio\\${vsVersion}\\Enterprise\\`;
+            const vcDir = `${vsDir}VC\\Auxiliary\\Build`;
+            if (fs.existsSync(path.join(vcDir, "vcvarsall.bat"))) {
+                core.exportVariable("VSINSTALLDIR", vsDir);
+
+                let vcvLine: string[] = [".\\vcvarsall.bat", this.vcArch()];
+                const vcVersion = this.vcVersion(vsVersion);
+                if (vcVersion)
+                    vcvLine.push(`-vcvars_ver=${vcVersion}`);
+                vcvLine.push("&&", "set");
+                let fullBuffer = '';
+                await ex.exec(vcvLine.join(" "), undefined, {
+                    cwd: vcDir,
+                    listeners: {
+                        stdout: (data) => fullBuffer += data.toString()
+                    }
+                });
+
+                for (let line of fullBuffer.split("\r\n")) {
+                    const eqIdx = line.indexOf("=");
+                    if (eqIdx > 0) {
+                        const name = line.substr(0, eqIdx);
+                        const value = line.substr(eqIdx + 1);
+                        if (process.env[name] != value) {
+                            core.debug(`Exporting env var ${name}=${value}`);
+                            core.exportVariable(name, value);
+                        }
+                    } else
+                        core.warning(`Line is not an environment variable: ${line}`);
+                }
+                return;
+            }
+        }
+        throw Error("Unable to find a valid Visual Studio installation");
     }
 
     public installPlatform(): string {
@@ -83,7 +121,35 @@ export class MsvcPlatform extends WindowsPlatform
         case "winrt_armv7_msvc2017":
             return "win64_msvc2017_winrt_armv7";
         default:
-            throw `Unsupported platform ${this.platform}`;
+            throw Error(`Unsupported platform ${this.platform}`);
+        }
+    }
+
+    private vcArch(): string {
+        if (this.platform.includes("winrt"))
+            return "x64_x86";
+        else if (this.platform.includes("64"))
+            return "x64";
+        else
+            return "x86";
+    }
+
+    private vcVersion(vsVersion: number): string | null {
+        const clvMatch = this.platform.match(/msvc(\d{4})/);
+        if (!clvMatch)
+            throw Error(`Unsupported platform ${this.platform}`);
+        const clVersion: number = Number(clvMatch[1]);
+        if (vsVersion == clVersion)
+            return null;
+        else {
+            switch(clVersion) {
+            case 2017:
+                return "14.16";
+            case 2015:
+                return "14.0";
+            default:
+                throw Error(`Unsupported compiler version ${clVersion}`);
+            }
         }
     }
 }

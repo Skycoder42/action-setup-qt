@@ -2,7 +2,6 @@ import * as os from 'os';
 import { promises as fs } from 'fs';
 import * as fssync from 'fs';
 import * as path from 'path';
-import * as rimraf from 'rimraf';
 
 import * as core from '@actions/core';
 import * as io from '@actions/io';
@@ -143,7 +142,7 @@ export class Installer
 			resDir = await tc.cacheDir(path.join(installPath, this.version, this.platform.platform), 'qt', this.version, this.platform.platform);
 
 		// remove tmp installation to free some space
-		rimraf.sync(installPath);
+		await io.rmRF(installPath);
 		return resDir;
 	}
 

@@ -16,22 +16,20 @@
     "qt",
     "setup"
   ],
-  "author": "GitHub",
+  "author": "Skycoder42",
   "license": "BSD-3-CLAUSE",
   "dependencies": {
-    "@actions/core": "^1.0.0",
-    "@actions/exec": "^1.0.0",
-    "@actions/io": "^1.0.0",
-    "@actions/tool-cache": "^1.0.0",
-    "@types/glob": "^7.1.1",
-    "@types/rimraf": "^2.0.3",
+    "@actions/core": "^1.2.0",
+    "@actions/exec": "^1.0.1",
+    "@actions/io": "^1.0.1",
+    "@actions/tool-cache": "^1.1.2",
     "glob": "^7.1.6",
-    "rimraf": "^3.0.0",
-    "semver": "^6.1.1"
+    "semver": "^6.3.0"
   },
   "devDependencies": {
-    "@types/node": "^12.12.12",
-    "@types/semver": "^6.0.0",
+    "@types/node": "^12.12.14",
+    "@types/glob": "^7.1.1",
+    "@types/semver": "^6.2.0",
     "typescript": "^3.7.2"
   }
 }
