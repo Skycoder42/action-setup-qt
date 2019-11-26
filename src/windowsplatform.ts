@@ -83,9 +83,11 @@ export class MsvcPlatform extends WindowsPlatform
                     vcvLine.push(`-vcvars_ver=${vcVersion}`);
                 vcvLine.push("&&", "set");
                 let fullBuffer = '';
+                core.info(`Running ${vcvLine.join(" ")}`);
                 await ex.exec(vcvLine.join(" "), undefined, {
                     cwd: vcDir,
                     windowsVerbatimArguments: true,
+                    silent: true,
                     listeners: {
                         stdout: (data) => fullBuffer += data.toString()
                     }
