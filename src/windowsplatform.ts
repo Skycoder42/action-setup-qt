@@ -85,6 +85,7 @@ export class MsvcPlatform extends WindowsPlatform
                 let fullBuffer = '';
                 await ex.exec(vcvLine.join(" "), undefined, {
                     cwd: vcDir,
+                    windowsVerbatimArguments: true,
                     listeners: {
                         stdout: (data) => fullBuffer += data.toString()
                     }
