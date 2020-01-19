@@ -42,7 +42,7 @@ export abstract class WindowsPlatform implements IPlatform
     }
 
     public async runPreInstaller(_cacheHit: boolean): Promise<void> {
-        await ex.exec("choco", ["install", "openssl", "--x86", "-y"]);
+        await ex.exec("choco", ["install", "openssl", "--x86", "-y", "--no-progress"]);
     }
 
     public async runPostInstaller(): Promise<void> {}
