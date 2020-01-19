@@ -17,7 +17,8 @@ export class MacosPlatform extends UnixPlatform
 	}
 
     public async runPreInstaller(_cacheHit: boolean): Promise<void> {
-		await ex.exec("brew", ["install", "make"]);
+		await ex.exec("brew", ["update"]);
+		await ex.exec("brew", ["install", "make", "p7zip"]);
 	}
 
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {

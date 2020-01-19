@@ -14,6 +14,7 @@ export class LinuxPlatform extends UnixPlatform
     }
 
     public async runPreInstaller(_cacheHit: boolean): Promise<void> {
+        await ex.exec("sudo", ["apt-get", "-qq", "update"]);
         await ex.exec("sudo", ["apt-get", "-qq", "install", "libgl1-mesa-dev", "doxygen", "doxyqml"]);
     }
 
