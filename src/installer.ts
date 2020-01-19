@@ -117,7 +117,7 @@ export class Installer
 
 	private async acquireQt(packages: string, iArgs: string, cachedir: string): Promise<string> {
 		// download the installer
-		const downloadPath: string = await tc.downloadTool(`https://download.qt.io/official_releases/online_installers/${this.platform.installerName()}`);
+		const downloadPath: string = await tc.downloadTool(`http://download.qt.io/official_releases/online_installers/${this.platform.installerName()}`);
 	
 		// create the script and run the installer
 		const installPath: string = path.join(this.tempDir, 'qt');
