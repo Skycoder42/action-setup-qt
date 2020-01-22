@@ -23,6 +23,15 @@ Controller.prototype.IntroductionPageCallback = function() {
 	gui.clickButton(buttons.NextButton, 1000);
 }
 
+// skip the obligations page
+Controller.prototype.ObligationsPageCallback = function()
+{
+    var page = gui.pageWidgetByObjectName("ObligationsPage");
+    page.obligationsAgreement.setChecked(true);
+    page.completeChanged();
+    gui.clickButton(buttons.NextButton, 1000);
+}
+
 // skip the telemetry page
 Controller.prototype.DynamicTelemetryPluginFormCallback = function() {
 	gui.pageWidgetByObjectName("DynamicTelemetryPluginForm").statisticGroupBox.disableStatisticRadioButton.setChecked(true);

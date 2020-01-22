@@ -15,7 +15,7 @@ export class LinuxPlatform extends UnixPlatform
 
     public async runPreInstaller(_cacheHit: boolean): Promise<void> {
         await ex.exec("sudo", ["apt-get", "-qq", "update"]);
-        await ex.exec("sudo", ["apt-get", "-qq", "install", "libgl1-mesa-dev", "doxygen", "doxyqml"]);
+        await ex.exec("sudo", ["apt-get", "-qq", "install", "libgl1-mesa-dev", "libxkbcommon-x11-0", "doxygen", "doxyqml"]);
     }
 
     public async runInstaller(tool: string, args: string[], instDir: string): Promise<void> {
