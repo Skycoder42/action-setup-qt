@@ -19,17 +19,17 @@
   "author": "Skycoder42",
   "license": "BSD-3-CLAUSE",
   "dependencies": {
-    "@actions/core": "^1.2.1",
+    "@actions/core": "^1.2.2",
     "@actions/exec": "^1.0.3",
     "@actions/io": "^1.0.2",
-    "@actions/tool-cache": "^1.3.0",
+    "@actions/tool-cache": "^1.3.1",
     "glob": "^7.1.6",
     "semver": "^7.1.1"
   },
   "devDependencies": {
-    "@types/node": "^13.1.8",
+    "@types/node": "^13.5.0",
     "@types/glob": "^7.1.1",
-    "@types/semver": "^6.2.0",
+    "@types/semver": "^7.1.0",
     "typescript": "^3.7.5"
   }
 }
