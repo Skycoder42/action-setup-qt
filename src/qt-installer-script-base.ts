@@ -62,8 +62,8 @@ Controller.prototype.ComponentSelectionPageCallback = function() {
 	gui.findChild(groupBox, "Latest releases").setChecked(true);
 	gui.findChild(groupBox, "FetchCategoryButton").click();
 	widget.deselectAll();
-	var extraMods = ["${modules.join("\", \"")}"];
-	extraMods.forEach(function(element){
+	var modules = ["${modules.join("\", \"")}"];
+	modules.forEach(function(element){
 		widget.selectComponent(element);
 	});
 
