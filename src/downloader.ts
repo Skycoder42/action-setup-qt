@@ -1,11 +1,15 @@
-import https from "https";
 import crypto from "crypto";
 import fs from "fs";
+import https from "https";
+import path from "path";
 import { URL } from "url";
+import util from "util";
 
 import xml from "fast-xml-parser";
 
 import * as core from "@actions/core";
+import * as io from "@actions/io";
+import * as ex from "@actions/exec";
 import * as tc from "@actions/tool-cache";
 
 import VersionNumber from "./versionnumber";
@@ -31,7 +35,22 @@ class Downloader
     }
 
     public async addQtSource(): Promise<void> {
-        await this.addSource(new URL("https://download.qt.io/online/qtsdkrepository/"), true);
+        const qtUrl = new URL("https://download.qt.io/online/qtsdkrepository/");
+        // standard source
+        await this.addSource(qtUrl, true);
+        // add tool sources
+        await this.addToolSource(qtUrl, "qtcreator");
+        await this.addToolSource(qtUrl, "qtcreator_preview");
+        await this.addToolSource(qtUrl, "openssl_x64");
+        await this.addToolSource(qtUrl, "openssl_x86");
+        await this.addToolSource(qtUrl, "openssl_src");
+        await this.addToolSource(qtUrl, "ninja");
+        await this.addToolSource(qtUrl, "maintenance");
+        await this.addToolSource(qtUrl, "ifw");
+        await this.addToolSource(qtUrl, "generic");
+        await this.addToolSource(qtUrl, "cmake");
+        await this.addToolSource(qtUrl, "vcredist");
+        await this.addToolSource(qtUrl, "mingw");
     }
 
     public async addSource(url: URL, deep: boolean): Promise<void> {
@@ -50,6 +69,27 @@ class Downloader
             .filter(x => x.Name.endsWith("." + this._platform));
         core.debug(`Downloaded ${filtered.length} valid module configurations from ${url}`);
         filtered.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
+    }
+
+    public async addToolSource(url: URL, type: string): Promise<boolean> {
+        try {
+            const subPath = [
+                this._host,
+                "desktop",
+                "tools_" + type
+            ];
+    
+            const sourceUrl = new URL(subPath.join('/') + '/', url);
+            core.debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
+            const reply = await this.get(new URL("Updates.xml", sourceUrl), "text/xml");
+            const update: XmlRoot = xml.parse(reply);
+            core.debug(`Downloaded ${update.Updates.PackageUpdate.length} valid module configurations from ${url}`);
+            update.Updates.PackageUpdate.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
+            return true;
+        } catch (error) {
+            console.warn(`Failed to get tool sources for tool type "${type}" with error: ${error.message}`);
+            return false;
+        }
     }
 
     public modules(): string[] {
@@ -84,28 +124,13 @@ class Downloader
         return true;
     }
 
-    public async download(): Promise<string[]> {
-        const result: string[] = [];
+    public async installTo(basePath: string): Promise<void> {
+        const archives = await this.download();
 
-        core.info(`Downloading install archives for ${this._downloads.length} modules...`);
-        for (const name of this._downloads) {
-            const pkg = this._packages?.get(name);
-            if (!pkg)
-                throw new Error(`Unable to download required Qt package "${name}"`);
-            
-            for (const archive of pkg.archives) {
-                const sha1sum = await this.get(new URL(pkg.shaPath(archive), pkg.url));
-                const archiveUrl = new URL(pkg.dlPath(archive), pkg.url);
-                archiveUrl.protocol = "http";
-                const archivePath = await tc.downloadTool(archiveUrl.toString());
-                if (!await this.verifyHashsum(archivePath, sha1sum))
-                    throw new Error(`Invalid sha1sum for archive ${archive}`);
-                result.push(archivePath);
-            }
-        }
-
-        core.debug(`Completed download of ${result.length} packages`);
-        return result;
+        core.info(`Extracting archives to ${basePath}...`);
+        for (const archive of archives)
+            await this.extract(basePath, archive);
+        await this.writeConfigs(basePath);
     }
 
     private getTarget(): string {
@@ -136,6 +161,68 @@ class Downloader
         }
     }
 
+    private async download(): Promise<string[]> {
+        const result: string[] = [];
+
+        core.info(`Downloading install archives for ${this._downloads.length} modules...`);
+        for (const name of this._downloads) {
+            const pkg = this._packages?.get(name);
+            if (!pkg)
+                throw new Error(`Unable to download required Qt package "${name}"`);
+            
+            for (const archive of pkg.archives) {
+                const sha1sum = await this.get(new URL(pkg.shaPath(archive), pkg.url));
+                const archiveUrl = new URL(pkg.dlPath(archive), pkg.url);
+                archiveUrl.protocol = "http";
+                const archivePath = await tc.downloadTool(archiveUrl.toString());
+                if (!await this.verifyHashsum(archivePath, sha1sum))
+                    throw new Error(`Invalid sha1sum for archive ${archive}`);
+                result.push(archivePath);
+            }
+        }
+
+        core.debug(`Completed download of ${result.length} packages`);
+        return result;
+    }
+
+    private async verifyHashsum(path: string, sha1sum: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            try {
+                const hasher = crypto.createHash('sha1');
+                const stream = fs.createReadStream(path);
+                stream.on('error', e => reject(e));
+                stream.on('data', chunk => hasher.update(chunk));
+                stream.on('end', () => resolve(hasher.digest('hex').toLowerCase() == sha1sum));
+            } catch(error) {
+                reject(error);
+            }
+        });
+    }
+
+    private async extract(basePath: string, archive: string): Promise<void> {
+        await io.mkdirP(basePath);
+        const szPath = await io.which("7z", true);
+        core.debug(`Extracting archive ${path.basename(archive)}...`);
+        await ex.exec(szPath, ['x', '-bb1', '-bd', '-y', '-sccUTF-8', archive], {
+            cwd: basePath,
+            silent: true
+        });
+    }
+
+    private async writeConfigs(basePath: string): Promise<void> {
+        core.info("Writing configuration files...");
+        const writeFile = util.promisify(fs.writeFile);
+        const appendFile = util.promisify(fs.appendFile);
+
+        const fullPath = path.join(basePath, this._version.toString(), this._platform);
+        // write qt.conf
+        core.debug("Writing bin/qt.conf...");
+        await writeFile(path.join(fullPath, "bin", "qt.conf"), "[Paths]\nPrefix=..\n", "utf-8");
+        // update qconfig.pri
+        core.debug("Writing mkspecs/qconfig.pri...");
+        await appendFile(path.join(fullPath, "mkspecs", "qconfig.pri"), "QT_EDITION = OpenSource\nQT_LICHECK = \n", "utf-8");
+    }
+
     private async get(url: URL, contentType: string | null = null) : Promise<string> {
         core.debug(`Requesting GET ${url}`);
         return new Promise<string>((resolve, reject) => {
@@ -156,20 +243,6 @@ class Downloader
                     reject(error);
                 }
             });
-        });
-    }
-
-    private async verifyHashsum(path: string, sha1sum: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            try {
-                const hasher = crypto.createHash('sha1');
-                const stream = fs.createReadStream(path);
-                stream.on('error', e => reject(e));
-                stream.on('data', chunk => hasher.update(chunk));
-                stream.on('end', () => resolve(hasher.digest('hex').toLowerCase() == sha1sum));
-            } catch(error) {
-                reject(error);
-            }
         });
     }
 };

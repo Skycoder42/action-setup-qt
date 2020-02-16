@@ -5,13 +5,13 @@ inputs:
   version:
     description: 'The Qt version to download and install. Example: 5.13.1'
     required: true
-    default: '5.13.2'
+    default: ''
   platform:
     description: 'A version dependend platform package to be installed. Example: gcc_64'
     required: true
-    default: 'gcc_64'
+    default: ''
   packages:
-    description: 'A comma seperated list of additional packages to be installed per platform selected. Example: qtnetworkauth,qtwebengine'
+    description: 'A comma seperated list of additional packages to be installed. Example: qtnetworkauth,qtwebengine,qt.tools.ifw.32'
     required: false
     default: ''
   deep-sources:
@@ -26,6 +26,10 @@ inputs:
     description: 'A path to a Qt installation, downloaded from cache'
     required: false
     default: ''
+  clean:
+    description: 'Perform a clean installation, ignoring any caches'
+    required: false
+    default: 'false'
 outputs:
   make:
     description: 'Name of the "make" executable to be used, i.e. name, nmake or mingw32-make'

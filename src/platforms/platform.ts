@@ -9,6 +9,6 @@ export default interface IPlatform
 
     makeName(): string;
     qmakeName(): string;
-    installDirs(toolPath: string): [string, string];  // ()
+    installDirs(toolPath: string): [string, string];  // (outdir, installdir)
     testFlags(): string;
 }

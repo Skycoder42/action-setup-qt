@@ -1,13 +1,14 @@
 import * as ex from '@actions/exec';
 
 import IPlatform from "./platform";
+import VersionNumber from '../versionnumber';
 
 export default abstract class WindowsPlatform implements IPlatform
 {
     public platform: string;
-    protected _version: string;
+    protected _version: VersionNumber;
 
-    public constructor(platform: string, version: string) {
+    public constructor(platform: string, version: VersionNumber) {
         this.platform = platform;
         this._version = version;
     }

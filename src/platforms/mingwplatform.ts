@@ -4,11 +4,12 @@ import * as core from "@actions/core";
 import * as io from "@actions/io";
 
 import WindowsPlatform from './windowsplatform';
+import VersionNumber from '../versionnumber';
 
 export default class MingwPlatform extends WindowsPlatform {
     private _isX64: boolean;
 
-    public constructor(platform: string, version: string) {
+    public constructor(platform: string, version: VersionNumber) {
         super(platform, version);
         this._isX64 = (platform == "mingw73_64");
     }
@@ -45,7 +46,7 @@ export default class MingwPlatform extends WindowsPlatform {
     public async runPostInstall(cached: boolean, instDir: string): Promise<void> {
         await this.runPostInstall(cached, instDir);
         if (!cached) {
-            const mingwPath = path.join(instDir, this._version, this.platform, "mingw");
+            const mingwPath = path.join(instDir, "mingw");
             await io.rmRF(mingwPath);
             if (this._isX64)
                 await io.mv(path.join(instDir, "Tools", "mingw730_64"), mingwPath);
