@@ -1,24 +1,22 @@
 name: Test the action
 
-on: [push, check_run]
+on: [push]
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
+        version:
+          - 5.14.1
         platform: 
           - gcc_64
-          - android_arm64_v8a
-          - android_x86_64
-          - android_armv7
-          - android_x86
+          - android
           - wasm_32
           - msvc2017_64
           - msvc2017
           - winrt_x64_msvc2017
           - winrt_x86_msvc2017
-          - winrt_armv7_msvc2017
           - mingw73_64
           - mingw73_32
           - clang_64
@@ -27,115 +25,75 @@ jobs:
         include: 
           - platform: gcc_64
             os: ubuntu-latest
-            repo: linux_x64
-            test: true
-          - platform: android_arm64_v8a
+          - platform: android
             os: ubuntu-latest
-            repo: linux_x64
-            test: false
-          - platform: android_x86_64
-            os: ubuntu-latest
-            repo: linux_x64
-            test: false
-          - platform: android_armv7
-            os: ubuntu-latest
-            repo: linux_x64
-            test: false
-          - platform: android_x86
-            os: ubuntu-latest
-            repo: linux_x64
-            test: false
           - platform: wasm_32
             os: ubuntu-latest
-            repo: linux_x64
-            test: false
+            emsdk: sdk-fastcomp-1.38.27-64bit
           - platform: msvc2017_64
             os: windows-latest
-            repo: windows_x86
-            vcarch: x64
-            test: true
           - platform: msvc2017
             os: windows-latest
-            repo: windows_x86
-            vcarch: x64_x86
-            test: true
           - platform: winrt_x64_msvc2017
             os: windows-latest
-            repo: windows_x86
-            vcarch: x64
-            test: false
           - platform: winrt_x86_msvc2017
             os: windows-latest
-            repo: windows_x86
-            vcarch: x64_x86
-            test: false
-          - platform: winrt_armv7_msvc2017
-            os: windows-latest
-            repo: windows_x86
-            vcarch: x64_arm
-            test: false
           - platform: mingw73_64
             os: windows-latest
-            repo: windows_x86
-            test: true
           - platform: mingw73_32
             os: windows-latest
-            repo: windows_x86
-            test: true
           - platform: clang_64
             os: macos-latest
-            repo: mac_x64
-            test: true
           - platform: ios
             os: macos-latest
-            repo: mac_x64
-            test: false
 
     runs-on: ${{matrix.os}}
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - uses: actions/setup-python@v1.1.0
-    - uses: mymindstorm/setup-emsdk@v1
-      if: matrix.platform == 'wasm_32'
-      with:
-        version: sdk-1.38.27-64bit
-    - uses: ilammy/msvc-dev-cmd@v1.0.0
-      if: contains(matrix.platform, 'msvc')
-      with:
-        arch: ${{matrix.vcarch}}
-        ##toolset: 14.16
-        uwp: ${{contains(matrix.platform, 'winrt')}}
-    - uses: Skycoder42/action-setup-qt@master
-      with:
-        version: 5.13.2
-        platform: ${{matrix.platform}}
-        packages: qtnetworkauth,qtwebengine
-        install-args: --addRepository https://install.skycoder42.de/qtmodules/${{matrix.repo}} --verbose
-    - name: qmake stats
-      run: qmake -query
-    - name: qmake hello-world
-      run: qmake
-      working-directory: hello-world
-    - name: make hello-world
-      run: make
-      working-directory: hello-world
-    - name: test hello-world
-      if: matrix.test
-      run: make test
-      working-directory: hello-world
-    - name: qmake QtJsonSerializer
-      run: qmake 
-      working-directory: QtJsonSerializer
-    - name: make QtJsonSerializer
-      run: make
-      working-directory: QtJsonSerializer
-    - name: make all QtJsonSerializer
-      if: matrix.test
-      run: make all
-      working-directory: QtJsonSerializer
-    - name: test QtJsonSerializer
-      if: matrix.test
-      run: make run-tests
-      working-directory: QtJsonSerializer
+      - uses: actions/checkout@v1
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v1
+      - name: actions/cache emsdk
+        uses: actions/cache@v1
+        if: matrix.platform == 'wasm_32'
+        with:
+          path: emsdk-cache
+          key: ${{runner.os}}-emsdk-${{matrix.emsdk}}
+      - uses: mymindstorm/setup-emsdk@v3
+        if: matrix.platform == 'wasm_32'
+        with:
+          version: ${{matrix.emsdk}}
+          actions-cache-folder: emsdk-cache
+      - uses: Skycoder42/action-setup-qt@qt-direct 
+        id: qt
+        with:
+          version: ${{matrix.version}}
+          platform: ${{matrix.platform}}
+          packages: "qtnetworkauth,qtwebglplugin,qt.tools.ifw.32,skycoder42.service"
+          flat-sources: "https://install.skycoder42.de/qtmodules/"
+      - name: qmake stats
+        run: qmake -query
+      - name: qmake hello-world
+        run: qmake
+        working-directory: hello-world
+      - name: make hello-world
+        run: make
+        working-directory: hello-world
+      - name: test hello-world
+        if: matrix.test
+        run: make test
+        working-directory: hello-world
+      - name: qmake QtJsonSerializer
+        run: qmake 
+        working-directory: QtJsonSerializer
+      - name: make QtJsonSerializer
+        run: make
+        working-directory: QtJsonSerializer
+      - name: make all QtJsonSerializer
+        if: matrix.test
+        run: make all
+        working-directory: QtJsonSerializer
+      - name: test QtJsonSerializer
+        if: matrix.test
+        run: make run-tests
+        working-directory: QtJsonSerializer
