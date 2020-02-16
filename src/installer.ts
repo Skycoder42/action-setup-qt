@@ -30,28 +30,35 @@ export default class Installer
 		this._tempDir = this.initTempDir(os.platform());
 
 		this._version = VersionNumber.fromString(version);
+		let host: string;
+		let arch: string;
 		switch (os.platform()) {
 		case "linux":
 			if (platform.includes("android"))
 				this._platform = new AndroidPlatform(platform);
 			else
 				this._platform = new LinuxPlatform(platform);
-			this._downloader = new Downloader("linux", "x64", this._version, this._platform.platform);
+			host = "linux";
+			arch = "x64";
 			break;
 		case "win32":
 			if (platform.includes("mingw"))
 				this._platform = new MingwPlatform(platform, this._version);
 			else
 				this._platform = new MsvcPlatform(platform, this._version);
-				this._downloader = new Downloader("windows", "x86", this._version, this._platform.platform);
+			host = "windows";
+			arch = "x86";
 			break;
 		case "darwin":
 			this._platform = new MacosPlatform(platform);
-			this._downloader = new Downloader("mac", "x64", this._version, this._platform.platform);
+			host = "mac";
+			arch = "x64";
 			break;
 		default:
 			throw `Install platform ${os.platform()} is not supported by this action`;
 		}
+		
+		this._downloader = new Downloader(host, arch, this._version, this._platform.installPlatform());
 	}
 
 	public async getQt(packages: string, deepSrc: string, flatSrc: string, cachedir: string, clean: boolean): Promise<void> {
@@ -119,7 +126,6 @@ export default class Installer
 	}
 
 	private parseList(list: string, seperator: string): string[] {
-		core.debug(`Transforming ${list} by splitting via ${seperator} to: ${list.split(seperator)}`);
 		return list
 			.split(seperator)
 			.map(e => e.trim())
