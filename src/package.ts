@@ -22,16 +22,24 @@ export default class Package {
     }
 
     public get archives(): string[] {
-        return this._xmlData.DownloadableArchives
-            .split(',')
-            .map(d => d.trim());
+        if (!this._xmlData.DownloadableArchives)
+            return [];
+        else {
+            return this._xmlData.DownloadableArchives
+                .split(',')
+                .map(d => d.trim());
+        }
     }
 
     public dependencies(platform: string): string[] {
-        return this._xmlData.Dependencies
-            .split(',')
-            .map(d => d.trim())
-            .filter(d => d.includes(platform));
+        if (!this._xmlData.Dependencies)
+            return [];
+        else {
+            return this._xmlData.Dependencies
+                .split(',')
+                .map(d => d.trim())
+                .filter(d => d.includes(platform));
+        }
     }
 
     public dlPath(archive: string): string {

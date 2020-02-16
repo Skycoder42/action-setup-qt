@@ -1,8 +1,8 @@
 export interface XmlPackageUpdate {
     Name: string;
     Version: string;
-    Dependencies: string;
-    DownloadableArchives: string;
+    Dependencies: string | undefined;
+    DownloadableArchives: string | undefined;
     SHA1: string;
 }
 
