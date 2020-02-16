@@ -15,11 +15,11 @@ inputs:
     required: false
     default: ''
   deep-sources:
-    description: 'A semicolon seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/<type>/qt5_qt<version>/<module>"'
+    description: 'A space seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/<type>/qt5_qt<version>/<module>"'
     required: false
     default: ''
   flat-sources:
-    description: 'A semicolon seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/qt<version>/<module>"'
+    description: 'A space seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/qt<version>/<module>"'
     required: false
     default: ''
   cachedir:

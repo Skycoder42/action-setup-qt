@@ -83,9 +83,9 @@ export default class Installer
 			cached = false;
 			core.debug('Downloading and installing Qt');
 			console.log(deepSrc, flatSrc);
-			toolPath = await this.acquireQt(this.parseList(packages),
-				this.parseList(deepSrc),
-				this.parseList(flatSrc),
+			toolPath = await this.acquireQt(this.parseList(packages, ','),
+				this.parseList(deepSrc, ' '),
+				this.parseList(flatSrc, ' '),
 				cachedir);
 		} else {
 			cached = true;
@@ -118,7 +118,7 @@ export default class Installer
 		core.setOutput('installdir', iPath[1]);
 	}
 
-	private parseList(list: string, seperator: string = ';'): string[] {
+	private parseList(list: string, seperator: string): string[] {
 		return list
 			.split(seperator)
 			.map(e => e.trim())
