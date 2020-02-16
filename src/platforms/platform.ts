@@ -5,6 +5,7 @@ export default interface IPlatform
     installPlatform(): string;
     addExtraEnvVars(basePath: string): void;
     extraTools(): string[];
+    runPreInstall(): Promise<void>;
     runPostInstall(cached: boolean, instDir: string): Promise<void>;
 
     makeName(): string;

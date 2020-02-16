@@ -20,6 +20,8 @@ export default abstract class UnixPlatform implements IPlatform
         return [];
     } 
 
+    public async runPreInstall(): Promise<void> {}
+
     public async runPostInstall(_cached: boolean, _instDir: string): Promise<void> {}
 
     public makeName(): string {

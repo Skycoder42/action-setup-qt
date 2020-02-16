@@ -23,9 +23,11 @@ export default abstract class WindowsPlatform implements IPlatform
         return [];
     }
 
-    public async runPostInstall(_cached: boolean, _instDir: string): Promise<void> {
+    public async runPreInstall(): Promise<void> {
         await ex.exec("choco", ["install", "openssl", "--x86", "-y", "--no-progress"]);
     }
+
+    public async runPostInstall(_cached: boolean, _instDir: string): Promise<void> {}
 
     public qmakeName(): string {
         return "qmake.exe";

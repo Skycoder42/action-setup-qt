@@ -10,8 +10,8 @@ export default class MacosPlatform extends UnixPlatform
 		core.addPath("/usr/local/opt/make/libexec/gnubin");
 	}
 	
-    public async runPostInstall(cached: boolean, instDir: string): Promise<void> {
-		await super.runPostInstall(cached, instDir);
+    public async runPreInstall(): Promise<void> {
+		await super.runPreInstall();
 		await ex.exec("brew", ["update"]);
 		await ex.exec("brew", ["install", "make", "p7zip"]);
 	}

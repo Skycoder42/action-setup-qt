@@ -58,7 +58,11 @@ export default class Installer
 			throw `Install platform ${os.platform()} is not supported by this action`;
 		}
 		
-		this._downloader = new Downloader(host, arch, this._version, this._platform.installPlatform());
+		this._downloader = new Downloader(host, 
+			arch, 
+			this._version,
+			this._platform.platform,
+			this._platform.installPlatform());
 	}
 
 	public async getQt(packages: string, deepSrc: string, flatSrc: string, cachedir: string, clean: boolean): Promise<void> {
@@ -84,7 +88,10 @@ export default class Installer
 			toolPath = null;
 		}
 
-		// download, extract, cache
+		// run pre install
+		await this._platform.runPreInstall();
+
+		// download, extract, cache (if not cached yet)
 		let cached: boolean;
 		if (!toolPath) {
 			cached = false;
@@ -160,6 +167,8 @@ export default class Installer
 
 		// add packages
 		core.debug(`Available modules: ${this._downloader.modules().join(", ")}`);
+		for (const pkg of this._platform.extraTools())
+			this._downloader.addDownload(pkg, true);
 		for (const pkg of packages)
 			this._downloader.addDownload(pkg, true);
 

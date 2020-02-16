@@ -20,15 +20,17 @@ class Downloader
 {
     private readonly _version: VersionNumber;
     private readonly _platform: string;
+    private readonly _pkgPlatform: string;
     private readonly _host: string;
 
     private _packages: Map<string, Package>;
     private _downloads: string[];
 
-    public constructor(os: string, arch: string, version: VersionNumber, platform: string)
+    public constructor(os: string, arch: string, version: VersionNumber, platform: string, instPlatform: string)
     {
         this._version = version;
         this._platform = platform;
+        this._pkgPlatform = instPlatform;
         this._host = os + '_' + arch;
         this._packages = new Map<string, Package>();
         this._downloads = ["__default"];
@@ -71,7 +73,7 @@ class Downloader
         if (!Array.isArray(update.Updates.PackageUpdate)) 
             update.Updates.PackageUpdate = [update.Updates.PackageUpdate];
         const filtered = update.Updates.PackageUpdate
-            ?.filter(x => x.Name.endsWith("." + this._platform));
+            ?.filter(x => x.Name.endsWith("." + this._pkgPlatform));
         core.debug(`Downloaded ${filtered?.length} valid module configurations from ${url}`);
         filtered?.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
     }
@@ -118,7 +120,7 @@ class Downloader
             }
         }
         
-        for (const dep of pkg.dependencies(this._platform)) {
+        for (const dep of pkg.dependencies(this._pkgPlatform)) {
             if (!this.addDownload(this.stripPackageName(dep), required)) {
                 core.info(`Skipping optional module ${name} because at least one of its dependencies was not found`);
                 return false;
@@ -162,10 +164,10 @@ class Downloader
     }
 
     private stripPackageName(name: string): string {
-        if (name == `qt.qt5.${this._version.toString("")}.${this._platform}`)
+        if (name == `qt.qt5.${this._version.toString("")}.${this._pkgPlatform}`)
             return "__default";
         else {
-            const match = name.match(`^qt\\.qt5\\.${this._version.toString("")}\\.(.+)\\.${this._platform}$`);
+            const match = name.match(`^qt\\.qt5\\.${this._version.toString("")}\\.(.+)\\.${this._pkgPlatform}$`);
             return match ? match[1] : name;
         }
     }
