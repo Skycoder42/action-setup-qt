@@ -8,44 +8,46 @@ import * as io from '@actions/io';
 import * as tc from '@actions/tool-cache';
 import * as ex from '@actions/exec';
 
-import { IPlatform } from './platform';
-import { LinuxPlatform, AndroidPlatform } from './linuxplatform';
-import { MingwPlatform, MsvcPlatform } from './windowsplatform';
-import { MacosPlatform } from './macosplatform';
+import IPlatform from './platforms/platform';
+import LinuxPlatform from './platforms/linuxplatform';
+import AndroidPlatform from "./platforms/androidplatform";
+import MingwPlatform from "./platforms/mingwplatform";
+import MsvcPlatform from "./platforms/msvcplatform";
+import MacosPlatform from './platforms/macosplatform';
 
 import * as qtScript from './qt-installer-script-base';
 
-export class Installer
+export default class Installer
 {
-	private version: string;
-	private platform: IPlatform;
-	private tempDir: string;
+	private readonly _version: string;
+	private readonly _platform: IPlatform;
+	private readonly _tempDir: string;
 
 	public constructor(version: string, platform: string) {
-		this.tempDir = this.initTempDir(os.platform());
-		this.version = version;
+		this._tempDir = this.initTempDir(os.platform());
+		this._version = version;
 		switch (os.platform()) {
 		case "linux":
 			if (platform.includes("android"))
-				this.platform = new AndroidPlatform(platform);
+				this._platform = new AndroidPlatform(platform);
 			else
-				this.platform = new LinuxPlatform(platform);
+				this._platform = new LinuxPlatform(platform);
 			break;
 		case "win32":
 			if (platform.includes("mingw"))
-				this.platform = new MingwPlatform(platform, version);
+				this._platform = new MingwPlatform(platform, version);
 			else
-				this.platform = new MsvcPlatform(platform, version);
+				this._platform = new MsvcPlatform(platform, version);
 			break;
 		case "darwin":
-			this.platform = new MacosPlatform(platform);
+			this._platform = new MacosPlatform(platform);
 			break;
 		default:
 			throw `Install platform ${os.platform()} is not supported by this action`;
 		}
 	}
 
-	public async getQt(packages: string, iArgs: string, cachedir: string): Promise<void> {
+	public async getQt(packages: string, deepSrc: string, flatSrc: string, cachedir: string): Promise<void> {
 		// install qdep
 		const pythonPath: string = await io.which('python', true);
 		core.debug(`Using python: ${pythonPath}`);
@@ -55,20 +57,20 @@ export class Installer
 		// check caches for Qt installation
 		let toolPath: string | null = null;
 		if (cachedir) {
-			if (fssync.existsSync(path.join(cachedir, "bin", this.platform.qmakeName()))) {
+			if (fssync.existsSync(path.join(cachedir, "bin", this._platform.qmakeName()))) {
 				toolPath = path.resolve(cachedir);
 				core.debug('Using globally cached Qt: ' + toolPath);
 			}
 		} else
-			toolPath = tc.find('qt', this.version, this.platform.platform);
+			toolPath = tc.find('qt', this._version, this._platform.platform);
 	
 		// download, extract, cache
 		if (!toolPath) {
-			await this.platform.runPreInstaller(false);
+			await this._platform.runPreInstaller(false);
 			core.debug('Downloading and installing Qt from online installer');
 			toolPath = await this.acquireQt(packages, iArgs, cachedir);
 		} else {
-			await this.platform.runPreInstaller(true);
+			await this._platform.runPreInstaller(true);
 			core.debug('Using locally cached Qt: ' + toolPath);
 		}
 		core.info('Using Qt installation: ' + toolPath);
@@ -76,21 +78,21 @@ export class Installer
 		// update output / env vars
 		core.setOutput("qtdir", toolPath);
 		core.addPath(path.join(toolPath, "bin"));
-		this.platform.addExtraEnvVars(toolPath);
+		this._platform.addExtraEnvVars(toolPath);
 
 		// run post installer
-		await this.platform.runPostInstaller();
+		await this._platform.runPostInstaller();
 	
 		await ex.exec("qmake", ["-version"]);
 		await ex.exec("qmake", ["-query"]);
 
 		// set outputs
-		core.setOutput("make", this.platform.makeName());
+		core.setOutput("make", this._platform.makeName());
 		core.setOutput("tests", String(this.shouldTest()));
-		core.setOutput("testflags", this.platform.testFlags());
+		core.setOutput("testflags", this._platform.testFlags());
 
 		// set install dir, create artifact symlink
-		const iPath: [string, string] = this.platform.setupInstallDir(toolPath);
+		const iPath: [string, string] = this._platform.setupInstallDir(toolPath);
 		await io.mkdirP(iPath[0]);
 		const instPath = path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), "..", "..");
 		core.setOutput('installdir', iPath[1]);
@@ -117,18 +119,18 @@ export class Installer
 
 	private async acquireQt(packages: string, iArgs: string, cachedir: string): Promise<string> {
 		// download the installer
-		const downloadPath: string = await tc.downloadTool(`http://download.qt.io/official_releases/online_installers/${this.platform.installerName()}`);
+		const downloadPath: string = await tc.downloadTool(`http://download.qt.io/official_releases/online_installers/${this._platform.installerName()}`);
 	
 		// create the script and run the installer
-		const installPath: string = path.join(this.tempDir, 'qt');
-		const scriptPath: string = path.join(this.tempDir, 'qt-installer-script.qs');
-		await fs.mkdir(path.join(this.tempDir, 'home'));
+		const installPath: string = path.join(this._tempDir, 'qt');
+		const scriptPath: string = path.join(this._tempDir, 'qt-installer-script.qs');
+		await fs.mkdir(path.join(this._tempDir, 'home'));
 		await fs.writeFile(scriptPath, this.generateScript(installPath, packages));
-		await this.platform.runInstaller(downloadPath, ["--script", scriptPath].concat(iArgs.split(" ")), installPath);
-		core.info(`Installed Qt ${this.version} for ${this.platform.platform}`);
+		await this._platform.runInstaller(downloadPath, ["--script", scriptPath].concat(iArgs.split(" ")), installPath);
+		core.info(`Installed Qt ${this._version} for ${this._platform.platform}`);
 		
 		// add qdep prf file
-		const qmakePath: string = path.join(installPath, this.version, this.platform.platform, "bin", this.platform.qmakeName());
+		const qmakePath: string = path.join(installPath, this._version, this._platform.platform, "bin", this._platform.qmakeName());
 		const qdepPath: string = await io.which('qdep', true)
 		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
 		core.info("Successfully prepared qdep");
@@ -136,10 +138,10 @@ export class Installer
 		// install into the local tool cache or global cache
 		let resDir: string;
 		if (cachedir) {
-			await io.mv(path.join(installPath, this.version, this.platform.platform), cachedir);
+			await io.mv(path.join(installPath, this._version, this._platform.platform), cachedir);
 			resDir = path.resolve(cachedir);
 		} else
-			resDir = await tc.cacheDir(path.join(installPath, this.version, this.platform.platform), 'qt', this.version, this.platform.platform);
+			resDir = await tc.cacheDir(path.join(installPath, this._version, this._platform.platform), 'qt', this._version, this._platform.platform);
 
 		// remove tmp installation to free some space
 		await io.rmRF(installPath);
@@ -147,18 +149,18 @@ export class Installer
 	}
 
 	private generateScript(path: string, packages: string): string {
-		const qtVer: string = this.version.replace(/\./g, "")
-		let modules = [`qt.qt5.${qtVer}.${this.platform.installPlatform()}`];
+		const qtVer: string = this._version.replace(/\./g, "")
+		let modules = [`qt.qt5.${qtVer}.${this._platform.installPlatform()}`];
 		for (let entry of packages.split(","))
 			modules.push(`qt.qt5.${qtVer}.${entry}`);
-		const extraPkgs = this.platform.extraPackages();
+		const extraPkgs = this._platform.extraPackages();
 		if (extraPkgs)
 			modules = modules.concat(extraPkgs);
 		return qtScript.generateScript(path, modules);
 	}
 
 	private shouldTest(): boolean {
-		const platform = this.platform.platform;
+		const platform = this._platform.platform;
 		if (platform.includes("android") ||
 			platform.includes("wasm") ||
 			platform.includes("winrt") ||

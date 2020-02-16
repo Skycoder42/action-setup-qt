@@ -14,10 +14,14 @@ inputs:
     description: 'A comma seperated list of additional packages to be installed per platform selected. Example: qtnetworkauth,qtwebengine'
     required: false
     default: ''
-  install-args:
-    description: 'Extra arguments to be passed to the Qt maintenance installation'
+  deep-sources:
+    description: 'A semicolon seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/<type>/qt5_qt<version>/<module>"'
     required: false
-    default: '--addRepository https://install.skycoder42.de/qtmodules/linux_x64'
+    default: ''
+  flat-sources:
+    description: 'A semicolon seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/qt<version>/<module>"'
+    required: false
+    default: ''
   cachedir:
     description: 'A path to a Qt installation, downloaded from cache'
     required: false
