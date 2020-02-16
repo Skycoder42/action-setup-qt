@@ -11,7 +11,8 @@ async function run() {
 			core.getInput('cachedir'), 
 			Boolean(core.getInput('clean')));
 	} catch (error) {
-		core.error(error);
+		console.log(error);
+		core.error(error.message);
 		core.setFailed(error.message);
 	}
 }

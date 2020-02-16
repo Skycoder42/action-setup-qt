@@ -1,5 +1,3 @@
-import VersionNumber from "./versionnumber";
-
 export interface XmlPackageUpdate {
     Name: string;
     Version: string;
@@ -10,7 +8,7 @@ export interface XmlPackageUpdate {
 
 export interface XmlUpdate {
     Checksum: boolean;
-    PackageUpdate: XmlPackageUpdate[];
+    PackageUpdate: XmlPackageUpdate | XmlPackageUpdate[] | undefined;
 }
 
 export interface XmlRoot {

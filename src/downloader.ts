@@ -13,7 +13,7 @@ import * as ex from "@actions/exec";
 import * as tc from "@actions/tool-cache";
 
 import VersionNumber from "./versionnumber";
-import { XmlRoot } from "./updates-xml";
+import { XmlRoot, XmlPackageUpdate } from "./updates-xml";
 import Package from "./package";
 
 class Downloader
@@ -65,10 +65,15 @@ class Downloader
         core.debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
         const reply = await this.get(new URL("Updates.xml", sourceUrl), "text/xml");
         const update: XmlRoot = xml.parse(reply);
+
+        if (typeof update.Updates.PackageUpdate == 'undefined')
+            return;
+        if (!Array.isArray(update.Updates.PackageUpdate)) 
+            update.Updates.PackageUpdate = [update.Updates.PackageUpdate];
         const filtered = update.Updates.PackageUpdate
-            .filter(x => x.Name.endsWith("." + this._platform));
-        core.debug(`Downloaded ${filtered.length} valid module configurations from ${url}`);
-        filtered.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
+            ?.filter(x => x.Name.endsWith("." + this._platform));
+        core.debug(`Downloaded ${filtered?.length} valid module configurations from ${url}`);
+        filtered?.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
     }
 
     public async addToolSource(url: URL, type: string): Promise<boolean> {
@@ -83,8 +88,12 @@ class Downloader
             core.debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
             const reply = await this.get(new URL("Updates.xml", sourceUrl), "text/xml");
             const update: XmlRoot = xml.parse(reply);
-            core.debug(`Downloaded ${update.Updates.PackageUpdate.length} valid module configurations from ${url}`);
-            update.Updates.PackageUpdate.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
+            if (typeof update.Updates.PackageUpdate == 'undefined')
+                return true;
+            if (!Array.isArray(update.Updates.PackageUpdate)) 
+                update.Updates.PackageUpdate = [update.Updates.PackageUpdate];
+            core.debug(`Downloaded ${update.Updates.PackageUpdate?.length} valid module configurations from ${url}`);
+            update.Updates.PackageUpdate?.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
             return true;
         } catch (error) {
             console.warn(`Failed to get tool sources for tool type "${type}" with error: ${error.message}`);
