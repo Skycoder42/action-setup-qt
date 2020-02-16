@@ -1,6 +1,6 @@
 import util from "util";
 import path from "path";
-import fs, { write } from "fs";
+import fs from "fs";
 
 import * as core from "@actions/core";
 import * as io from "@actions/io";

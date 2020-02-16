@@ -1,6 +1,7 @@
 import https from "https";
 import crypto from "crypto";
-import fs, { read } from "fs";
+import fs from "fs";
+import { URL } from "url";
 
 import xml from "fast-xml-parser";
 
@@ -15,34 +16,40 @@ class Downloader
 {
     private readonly _version: VersionNumber;
     private readonly _platform: string;
-    private readonly _target: string;
+    private readonly _host: string;
 
-    private _packages: Map<string, Package> | null = null;
+    private _packages: Map<string, Package>;
     private _downloads: string[];
 
     public constructor(os: string, arch: string, version: VersionNumber, platform: string)
     {
         this._version = version;
         this._platform = platform;
-        this._target = [
-            os + '_' + arch,
-            Downloader.getDevSystem(platform),
-            Downloader.getVersionPath(platform, version)
-        ].join('/');
+        this._host = os + '_' + arch;
         this._packages = new Map<string, Package>();
-        this._downloads = [];
+        this._downloads = ["__default"];
     }
 
-    public async initialize() : Promise<void> {
-        core.debug(`Downloading Updates.xml for target ${this._target}`);
-        const reply = await this.get(this.downloadUrl("Updates.xml"), "text/xml");
+    public async addQtSource(): Promise<void> {
+        await this.addSource(new URL("https://download.qt.io/online/qtsdkrepository/"), true);
+    }
+
+    public async addSource(url: URL, deep: boolean): Promise<void> {
+        const subPath = [this._host];
+        if (deep) {
+            subPath.push(this.getTarget());
+            subPath.push(this.getVersionPath());
+        } else
+            subPath.push("qt" + this._version.toString(""));
+
+        const sourceUrl = new URL(subPath.join('/') + '/', url);
+        core.debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
+        const reply = await this.get(new URL("Updates.xml", sourceUrl), "text/xml");
         const update: XmlRoot = xml.parse(reply);
-        this._packages = update.Updates.PackageUpdate
-            .filter(x => x.Version.startsWith(this._version.toString()))
-            .filter(x => x.Name.endsWith("." + this._platform))
-            .reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x)), new Map<string, Package>());
-        this._downloads = ["__default"];
-        core.debug(`Downloaded ${this._packages.size} module configurations`);
+        const filtered = update.Updates.PackageUpdate
+            .filter(x => x.Name.endsWith("." + this._platform));
+        core.debug(`Downloaded ${filtered.length} valid module configurations from ${url}`);
+        filtered.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
     }
 
     public modules(): string[] {
@@ -87,8 +94,10 @@ class Downloader
                 throw new Error(`Unable to download required Qt package "${name}"`);
             
             for (const archive of pkg.archives) {
-                const sha1sum = await this.get(this.downloadUrl(pkg.shaPath(archive)));
-                const archivePath = await tc.downloadTool(this.downloadUrl(pkg.dlPath(archive), false));
+                const sha1sum = await this.get(new URL(pkg.shaPath(archive), pkg.url));
+                const archiveUrl = new URL(pkg.dlPath(archive), pkg.url);
+                archiveUrl.protocol = "http";
+                const archivePath = await tc.downloadTool(archiveUrl.toString());
                 if (!await this.verifyHashsum(archivePath, sha1sum))
                     throw new Error(`Invalid sha1sum for archive ${archive}`);
                 result.push(archivePath);
@@ -99,20 +108,20 @@ class Downloader
         return result;
     }
 
-    private static getDevSystem(platform: string): string {
-        if (platform.includes("android"))
+    private getTarget(): string {
+        if (this._platform.includes("android"))
             return "android";
-        else if (platform.includes("winrt"))
+        else if (this._platform.includes("winrt"))
             return "winrt";   
-        else if (platform.includes("ios"))
+        else if (this._platform.includes("ios"))
             return "ios"; 
         else
             return "desktop";
     }
 
-    private static getVersionPath(platform: string, version: VersionNumber) {
-        const basePath = "qt5_" + version.toString("");
-        if (platform.includes("wasm"))
+    private getVersionPath() {
+        const basePath = "qt5_" + this._version.toString("");
+        if (this._platform.includes("wasm"))
             return basePath + "_wasm";
         else
             return basePath;
@@ -122,16 +131,13 @@ class Downloader
         if (name == `qt.qt5.${this._version.toString("")}.${this._platform}`)
             return "__default";
         else {
-            const match = name.match(`qt\\.qt5\\.${this._version.toString("")}\\.(\\w+)\\.${this._platform}`);
+            const match = name.match(`^qt\\.qt5\\.${this._version.toString("")}\\.(.+)\\.${this._platform}$`);
             return match ? match[1] : name;
         }
     }
 
-    private downloadUrl(path: string, https: boolean = true): string {
-        return `${https ? "https" : "http"}://download.qt.io/online/qtsdkrepository/${this._target}/${path}`;
-    }
-
-    private async get(url: string, contentType: string | null = null) : Promise<string> {
+    private async get(url: URL, contentType: string | null = null) : Promise<string> {
+        core.debug(`Requesting GET ${url}`);
         return new Promise<string>((resolve, reject) => {
             https.get(url, res => {
                 try {

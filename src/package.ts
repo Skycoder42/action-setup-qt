@@ -1,10 +1,20 @@
+import { URL } from "url";
 import { XmlPackageUpdate } from "./updates-xml";
 
 export default class Package {
     private _xmlData: XmlPackageUpdate;
+    
+    private _url : URL;
+    public get url() : URL {
+        return this._url;
+    }
+    public set url(v : URL) {
+        this._url = v;
+    }    
 
-    public constructor(data: XmlPackageUpdate) {
+    public constructor(data: XmlPackageUpdate, baseUrl: URL) {
         this._xmlData = data;
+        this._url = baseUrl;
     }
 
     public get name(): string {
