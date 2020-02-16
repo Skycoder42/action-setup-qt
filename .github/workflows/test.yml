@@ -69,7 +69,7 @@ jobs:
         with:
           version: ${{matrix.version}}
           platform: ${{matrix.platform}}
-          packages: "qtnetworkauth,qtwebglplugin,qt.tools.ifw.32,skycoder42.service"
+          packages: "qtnetworkauth,qt.tools.ifw.32,skycoder42.service"
           flat-sources: "https://install.skycoder42.de/qtmodules/"
       - name: qmake stats
         run: qmake -query
