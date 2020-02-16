@@ -119,6 +119,7 @@ export default class Installer
 	}
 
 	private parseList(list: string, seperator: string): string[] {
+		core.debug(`Transforming ${list} by splitting via ${seperator} to: ${list.split(seperator)}`);
 		return list
 			.split(seperator)
 			.map(e => e.trim())
