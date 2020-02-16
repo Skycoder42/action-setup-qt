@@ -81,10 +81,11 @@ export default class Installer
 		let cached: boolean;
 		if (!toolPath) {
 			cached = false;
-			core.debug('Downloading and installing Qt from online installer');
-			toolPath = await this.acquireQt(packages.split(";").map(s => s.trim()),
-				deepSrc.split(";").map(s => s.trim()), 
-				flatSrc.split(";").map(s => s.trim()),
+			core.debug('Downloading and installing Qt');
+			console.log(deepSrc, flatSrc);
+			toolPath = await this.acquireQt(this.parseList(packages),
+				this.parseList(deepSrc),
+				this.parseList(flatSrc),
 				cachedir);
 		} else {
 			cached = true;
@@ -115,6 +116,13 @@ export default class Installer
 		const instPath = path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), "..", "..");
 		core.setOutput('outdir', instPath);
 		core.setOutput('installdir', iPath[1]);
+	}
+
+	private parseList(list: string, seperator: string = ';'): string[] {
+		return list
+			.split(seperator)
+			.map(e => e.trim())
+			.filter(e => e.length > 0);
 	}
 
 	private initTempDir(platform: NodeJS.Platform): string {
