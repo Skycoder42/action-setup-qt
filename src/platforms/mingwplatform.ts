@@ -38,9 +38,9 @@ export default class MingwPlatform extends WindowsPlatform {
     public extraTools(): string[] {
         const tools = super.extraTools();
         if (this._isX64)
-            return [...tools, "qt.tools.win64_mingw73"];
+            return [...tools, "qt.tools.win64_mingw730"];
         else
-            return [...tools, "qt.tools.win32_mingw73"];
+            return [...tools, "qt.tools.win32_mingw730"];
     }
 
     public async runPostInstall(cached: boolean, instDir: string): Promise<void> {
