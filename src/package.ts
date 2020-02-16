@@ -22,7 +22,7 @@ export default class Package {
     }
 
     public get archives(): string[] {
-        if (!this._xmlData.DownloadableArchives)
+        if (typeof this._xmlData.DownloadableArchives !== 'string')
             return [];
         else {
             return this._xmlData.DownloadableArchives
@@ -32,7 +32,7 @@ export default class Package {
     }
 
     public dependencies(platform: string): string[] {
-        if (!this._xmlData.Dependencies)
+        if (typeof this._xmlData.Dependencies !== 'string')
             return [];
         else {
             return this._xmlData.Dependencies
