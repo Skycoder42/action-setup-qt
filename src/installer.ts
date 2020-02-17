@@ -175,24 +175,24 @@ export default class Installer
 		// download and install
 		const installPath = path.join(this._tempDir, 'qt');
 		await this._downloader.installTo(installPath);
+		const dataPath = path.join(installPath, this._version.toString(), this._platform.platform);
 		
 		// add qdep prf file
-		const vString = this._version.toString();
-		const qmakePath = path.join(installPath, vString, this._platform.platform, "bin", this._platform.qmakeName());
+		const qmakePath = path.join(dataPath, "bin", this._platform.qmakeName());
 		const qdepPath = await io.which('qdep', true)
 		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
 		core.info("Successfully prepared qdep");
+		
+		// move tools
+		await io.mv(path.join(installPath, "Tools"), path.join(dataPath, "Tools"));
 	
 		// install into the local tool cache or global cache
 		let resDir: string;
 		if (cachedir) {
-			await io.mv(path.join(installPath, vString, this._platform.platform), cachedir);
+			await io.mv(dataPath, cachedir);
 			resDir = path.resolve(cachedir);
 		} else
-			resDir = await tc.cacheDir(path.join(installPath, vString, this._platform.platform), 'qt', vString, this._platform.platform);
-
-		// move tools
-		await io.mv(path.join(installPath, "Tools"), path.join(resDir, "Tools"));
+			resDir = await tc.cacheDir(dataPath, 'qt', this._version.toString(), this._platform.platform);
 
 		// remove tmp installation to free some space
 		await io.rmRF(installPath);
