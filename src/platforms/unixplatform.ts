@@ -24,6 +24,10 @@ export default abstract class UnixPlatform implements IPlatform
 
     public async runPostInstall(_cached: boolean, _instDir: string): Promise<void> {}
 
+    public shellName(): string {
+        return "bash";
+    }
+
     public makeName(): string {
         return "make";
     }

@@ -120,6 +120,7 @@ export default class Installer
 		await ex.exec("qmake", ["-query"]);
 
 		// set outputs
+		core.setOutput("shell", this._platform.shellName());
 		core.setOutput("make", this._platform.makeName());
 		core.setOutput("tests", String(this.shouldTest()));
 		core.setOutput("testflags", this._platform.testFlags());

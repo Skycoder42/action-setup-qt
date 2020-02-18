@@ -8,6 +8,7 @@ export default interface IPlatform
     runPreInstall(): Promise<void>;
     runPostInstall(cached: boolean, instDir: string): Promise<void>;
 
+    shellName(): string;
     makeName(): string;
     qmakeName(): string;
     installDirs(toolPath: string): [string, string];  // (outdir, installdir)

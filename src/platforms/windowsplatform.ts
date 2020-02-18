@@ -29,6 +29,10 @@ export default abstract class WindowsPlatform implements IPlatform
 
     public async runPostInstall(_cached: boolean, _instDir: string): Promise<void> {}
 
+    public shellName(): string {
+        return "cmd";
+    }
+
     public qmakeName(): string {
         return "qmake.exe";
     }
