@@ -32,7 +32,10 @@ export default class MingwPlatform extends WindowsPlatform {
 
     public addExtraEnvVars(basePath: string): void {
         super.addExtraEnvVars(basePath);
-        core.addPath(path.join(basePath, "mingw", "bin"));
+        core.addPath(path.join(basePath, 
+            "Tools", 
+            this._isX64 ? "mingw730_64" : "mingw730_32",
+            "bin"));
     }
 
     public extraTools(): string[] {
@@ -41,17 +44,5 @@ export default class MingwPlatform extends WindowsPlatform {
             return [...tools, "qt.tools.win64_mingw730"];
         else
             return [...tools, "qt.tools.win32_mingw730"];
-    }
-
-    public async runPostInstall(cached: boolean, instDir: string): Promise<void> {
-        await this.runPostInstall(cached, instDir);
-        if (!cached) {
-            const mingwPath = path.join(instDir, "mingw");
-            await io.rmRF(mingwPath);
-            if (this._isX64)
-                await io.mv(path.join(instDir, "Tools", "mingw730_64"), mingwPath);
-            else
-                await io.mv(path.join(instDir, "Tools", "mingw730_32"), mingwPath);
-        }
     }
 }
