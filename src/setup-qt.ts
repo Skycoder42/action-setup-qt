@@ -9,7 +9,7 @@ async function run() {
 			core.getInput('deep-sources'), 
 			core.getInput('flat-sources'), 
 			core.getInput('cachedir'), 
-			Boolean(core.getInput('clean')));
+			core.getInput('clean'));
 	} catch (error) {
 		console.log(error);
 		core.error(error.message);

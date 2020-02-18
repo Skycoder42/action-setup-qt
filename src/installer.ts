@@ -65,7 +65,7 @@ export default class Installer
 			this._platform.installPlatform());
 	}
 
-	public async getQt(packages: string, deepSrc: string, flatSrc: string, cachedir: string, clean: boolean): Promise<void> {
+	public async getQt(packages: string, deepSrc: string, flatSrc: string, cachedir: string, clean: string): Promise<void> {
 		// install qdep
 		const pythonPath: string = await io.which('python', true);
 		core.debug(`Using python: ${pythonPath}`);
@@ -83,7 +83,8 @@ export default class Installer
 			toolPath = tc.find('qt', this._version.toString(), this._platform.platform);
 	
 		// clean if required
-		if (clean && toolPath) {
+		if (clean == "true" && toolPath) {
+			core.info("Cleaning up existing tool cache")
 			await io.rmRF(toolPath);
 			toolPath = null;
 		}
@@ -183,7 +184,9 @@ export default class Installer
 		core.info("Successfully prepared qdep");
 		
 		// move tools
-		await io.mv(path.join(installPath, "Tools"), path.join(dataPath, "Tools"));
+		const oldToolPath = path.join(installPath, "Tools");
+		if (fssync.existsSync(oldToolPath))
+			await io.mv(oldToolPath, path.join(dataPath, "Tools"));
 	
 		// install into the local tool cache or global cache
 		let resDir: string;
