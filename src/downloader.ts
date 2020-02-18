@@ -98,7 +98,7 @@ class Downloader
             update.Updates.PackageUpdate?.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
             return true;
         } catch (error) {
-            console.warn(`Failed to get tool sources for tool type "${type}" with error: ${error.message}`);
+            core.warning(`Failed to get tool sources for tool type "${type}" with error: ${error.message}`);
             return false;
         }
     }
@@ -192,7 +192,7 @@ class Downloader
             }
         }
 
-        core.debug(`Completed download of ${result.length} packages`);
+        core.debug(`Completed download of ${result.length} archives`);
         return result;
     }
 

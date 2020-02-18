@@ -96,7 +96,6 @@ export default class Installer
 		if (!toolPath) {
 			cached = false;
 			core.debug('Downloading and installing Qt');
-			console.log(deepSrc, flatSrc);
 			toolPath = await this.acquireQt(this.parseList(packages, ','),
 				this.parseList(deepSrc, ' '),
 				this.parseList(flatSrc, ' '),
