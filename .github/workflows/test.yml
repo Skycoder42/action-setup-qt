@@ -73,27 +73,31 @@ jobs:
           flat-sources: "https://install.skycoder42.de/qtmodules/"
       - name: qmake stats
         run: qmake -query
+        
       - name: qmake hello-world
         run: qmake
         working-directory: hello-world
       - name: make hello-world
-        run: make
+        run: ${{steps.qt.outputs.make}}
         working-directory: hello-world
       - name: test hello-world
-        if: matrix.test
-        run: make test
+        if: steps.qt.outputs.tests == 'true'
+        run: ${{steps.qt.outputs.make}} test
         working-directory: hello-world
+        
       - name: qmake QtJsonSerializer
-        run: qmake 
+        run:  |
+          qmake CONFIG+=install_ok QT_PLATFORM=${{matrix.platform}}
+          ${{steps.qt.outputs.make}} qmake_all 
         working-directory: QtJsonSerializer
       - name: make QtJsonSerializer
-        run: make
-        working-directory: QtJsonSerializer
-      - name: make all QtJsonSerializer
-        if: matrix.test
-        run: make all
+        run: |
+          ${{steps.qt.outputs.make}}
+          ${{steps.qt.outputs.make}} INSTALL_ROOT="${{steps.qt.outputs.installdir}}" install
         working-directory: QtJsonSerializer
       - name: test QtJsonSerializer
-        if: matrix.test
-        run: make run-tests
+        if: steps.qt.outputs.tests == 'true'
+        run: |
+          ${{steps.qt.outputs.make}} all
+          ${{steps.qt.outputs.make}} ${{steps.qt.outputs.testflags}} run-tests
         working-directory: QtJsonSerializer
