@@ -81,7 +81,7 @@ jobs:
         run: ${{steps.qt.outputs.make}}
         working-directory: hello-world
       - name: test hello-world
-        if: steps.qt.outputs.tests == 'true'
+        if: steps.qt.outputs.tests == 'true' && matrix.platform != 'mingw73_64' && matrix.platform != 'mingw73_32'
         run: ${{steps.qt.outputs.make}} test
         working-directory: hello-world
         
