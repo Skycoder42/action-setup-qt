@@ -70,6 +70,8 @@ export default class Installer
 		const pythonPath: string = await io.which('python', true);
 		core.debug(`Using python: ${pythonPath}`);
 		await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
+		const qdepPath = await io.which('qdep', true);
+		await ex.exec(qdepPath, ["--version"]);
 		core.info("Installed qdep");
 		
 		// check caches for Qt installation
@@ -180,7 +182,7 @@ export default class Installer
 		
 		// add qdep prf file
 		const qmakePath = path.join(dataPath, "bin", this._platform.qmakeName());
-		const qdepPath = await io.which('qdep', true)
+		const qdepPath = await io.which('qdep', true);
 		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
 		core.info("Successfully prepared qdep");
 		
