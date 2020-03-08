@@ -114,7 +114,8 @@ export default class Installer
 		core.addPath(path.join(toolPath, "bin"));
 		this._platform.addExtraEnvVars(toolPath);
 
-		// run post installer
+		// run post installers
+		await this.generateQdepPrf(toolPath);
 		await this._platform.runPostInstall(cached, toolPath);
 	
 		// log stuff
@@ -180,12 +181,6 @@ export default class Installer
 		await this._downloader.installTo(installPath);
 		const dataPath = path.join(installPath, this._version.toString(), this._platform.platform);
 		
-		// add qdep prf file
-		const qmakePath = path.join(dataPath, "bin", this._platform.qmakeName());
-		const qdepPath = await io.which('qdep', true);
-		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
-		core.info("Successfully prepared qdep");
-		
 		// move tools
 		const oldToolPath = path.join(installPath, "Tools");
 		if (fssync.existsSync(oldToolPath))
@@ -202,6 +197,14 @@ export default class Installer
 		// remove tmp installation to free some space
 		await io.rmRF(installPath);
 		return resDir;
+	}
+
+	private async generateQdepPrf(installPath: string) {
+		// add qdep prf file
+		const qmakePath = path.join(installPath, "bin", this._platform.qmakeName());
+		const qdepPath = await io.which('qdep', true);
+		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
+		core.info("Successfully prepared qdep");
 	}
 
 	private shouldTest(): boolean {
