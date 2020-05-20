@@ -1,12 +1,12 @@
 import os from 'os';
-import fs, { exists as existsCb } from 'fs';
 import path from 'path';
+import { exists as existsCb } from 'fs';
 import { URL } from 'url';
 import { promisify } from 'util';
 
-import core from '@actions/core';
-import io from '@actions/io';
-import ex from '@actions/exec';
+import { debug, info, setOutput, addPath } from '@actions/core';
+import { mv, rmRF, mkdirP, which } from '@actions/io';
+import { exec } from '@actions/exec';
 import { restoreCache, saveCache } from '@actions/cache';
  
 import IPlatform from './platforms/platform';
@@ -80,51 +80,51 @@ export default class Installer
 		// try to get Qt from cache, unless clean is specified
 		let toolPath: string | null = null;
 		if (clean != "true") {
-			core.debug(`Trying to restore Qt from cache with key: ${this._cacheKey} `);
+			debug(`Trying to restore Qt from cache with key: ${this._cacheKey} `);
 			const hitKey = await restoreCache([Installer.CacheDir], this._cacheKey);
 			if (hitKey && await exists(path.join(Installer.CacheDir, "bin", this._platform.qmakeName()))) {
 				toolPath = path.resolve(Installer.CacheDir);
-				core.debug(`Restored Qt from cache to path: ${toolPath}`);
+				debug(`Restored Qt from cache to path: ${toolPath}`);
 			}
 		}
 
 		// download, extract, cache
 		if (!toolPath) {
-			core.debug('Downloading and installing Qt');
+			debug('Downloading and installing Qt');
 			toolPath = await this.acquireQt(this.parseList(packages, ','),
 				this.parseList(deepSrc, ' '),
 				this.parseList(flatSrc, ' '));
-				core.debug(`Caching Qt with key: ${this._cacheKey}`);
+				debug(`Caching Qt with key: ${this._cacheKey}`);
 			await this._platform.runPostInstall(false, toolPath);
 			await saveCache([toolPath], this._cacheKey);
 		} else
 			await this._platform.runPostInstall(true, toolPath);
-		core.info('Using Qt installation: ' + toolPath);
+		info('Using Qt installation: ' + toolPath);
 
 		// generate qdep prf
 		await this.generateQdepPrf(toolPath);
 
 		// update output / env vars
-		core.setOutput("qtdir", toolPath);
-		core.addPath(path.join(toolPath, "bin"));
+		setOutput("qtdir", toolPath);
+		addPath(path.join(toolPath, "bin"));
 		this._platform.addExtraEnvVars(toolPath);
 	
 		// log stuff
-		await ex.exec("qmake", ["-version"]);
-		await ex.exec("qmake", ["-query"]);
+		await exec("qmake", ["-version"]);
+		await exec("qmake", ["-query"]);
 
 		// set outputs
-		core.setOutput("shell", this._platform.shellName());
-		core.setOutput("make", this._platform.makeName());
-		core.setOutput("tests", String(this.shouldTest()));
-		core.setOutput("testflags", this._platform.testFlags());
+		setOutput("shell", this._platform.shellName());
+		setOutput("make", this._platform.makeName());
+		setOutput("tests", String(this.shouldTest()));
+		setOutput("testflags", this._platform.testFlags());
 
 		// set install dir, create artifact symlink
 		const iPath = this._platform.installDirs(toolPath);
-		await io.mkdirP(iPath[0]);
+		await mkdirP(iPath[0]);
 		const instPath = path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), "..", "..");
-		core.setOutput('outdir', instPath);
-		core.setOutput('installdir', iPath[1]);
+		setOutput('outdir', instPath);
+		setOutput('installdir', iPath[1]);
 	}
 
 	private parseList(list: string, seperator: string): string[] {
@@ -153,12 +153,12 @@ export default class Installer
 	}
 
 	private async installQdep(): Promise<void> {
-		const pythonPath: string = await io.which('python', true);
-		core.debug(`Using python: ${pythonPath}`);
-		await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
-		const qdepPath = await io.which('qdep', true);
-		await ex.exec(qdepPath, ["--version"]);
-		core.info("Installed qdep");
+		const pythonPath: string = await which('python', true);
+		debug(`Using python: ${pythonPath}`);
+		await exec(pythonPath, ["-m", "pip", "install", "qdep"]);
+		const qdepPath = await which('qdep', true);
+		await exec(qdepPath, ["--version"]);
+		info("Installed qdep");
 	}
 
 	private async acquireQt(packages: string[], deepSrc: string[], flatSrc: string[]): Promise<string> {
@@ -170,7 +170,7 @@ export default class Installer
 			await this._downloader.addSource(new URL(src), false);
 
 		// add packages
-		core.debug(`Available modules: ${this._downloader.modules().join(", ")}`);
+		debug(`Available modules: ${this._downloader.modules().join(", ")}`);
 		for (const pkg of this._platform.extraTools())
 			this._downloader.addDownload(pkg, true);
 		for (const pkg of packages)
@@ -184,23 +184,23 @@ export default class Installer
 		// move tools
 		const oldToolPath = path.join(installPath, "Tools");
 		if (await exists(oldToolPath))
-			await io.mv(oldToolPath, path.join(dataPath, "Tools"));
+			await mv(oldToolPath, path.join(dataPath, "Tools"));
 	
 		// move out of install dir to seperate dir
-		await io.rmRF(Installer.CacheDir);
-		await io.mv(dataPath, Installer.CacheDir);
+		await rmRF(Installer.CacheDir);
+		await mv(dataPath, Installer.CacheDir);
 
 		// remove tmp installation to free some space
-		await io.rmRF(installPath);
+		await rmRF(installPath);
 		return Installer.CacheDir;
 	}
 
 	private async generateQdepPrf(installPath: string) {
 		// add qdep prf file
 		const qmakePath = path.join(installPath, "bin", this._platform.qmakeName());
-		const qdepPath = await io.which('qdep', true);
-		await ex.exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
-		core.info("Successfully prepared qdep");
+		const qdepPath = await which('qdep', true);
+		await exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
+		info("Successfully prepared qdep");
 	}
 
 	private shouldTest(): boolean {
