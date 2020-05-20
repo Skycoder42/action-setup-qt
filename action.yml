@@ -1,15 +1,13 @@
 name: 'Setup Qt environment'
-description: 'Setup Qt from their online installer'
+description: 'Setup Qt by using the prebuilt binaries the Qt-Company provides'
 author: 'Skycoder42'
 inputs: 
   version:
     description: 'The Qt version to download and install. Example: 5.13.1'
     required: true
-    default: ''
   platform:
     description: 'A version dependend platform package to be installed. Example: gcc_64'
     required: true
-    default: ''
   packages:
     description: 'A comma seperated list of additional packages to be installed. Example: qtnetworkauth,qtwebengine,qt.tools.ifw.32'
     required: false
@@ -20,10 +18,6 @@ inputs:
     default: ''
   flat-sources:
     description: 'A space seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/qt<version>/<module>"'
-    required: false
-    default: ''
-  cachedir:
-    description: 'A path to a Qt installation, downloaded from cache'
     required: false
     default: ''
   clean:
@@ -46,6 +40,6 @@ outputs:
   outdir:
     description: 'The path where installed files go after installing to installdir'
 runs:
-  using: 'node12'
+  using: 'node14'
   main: 'lib/setup-qt.js'
 

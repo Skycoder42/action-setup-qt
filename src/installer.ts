@@ -1,13 +1,14 @@
-import * as os from 'os';
-import { promises as fs } from 'fs';
-import * as fssync from 'fs';
-import * as path from 'path';
+import os from 'os';
+import fs, { exists as existsCb } from 'fs';
+import path from 'path';
+import { URL } from 'url';
+import { promisify } from 'util';
 
-import * as core from '@actions/core';
-import * as io from '@actions/io';
-import * as tc from '@actions/tool-cache';
-import * as ex from '@actions/exec';
-
+import core from '@actions/core';
+import io from '@actions/io';
+import ex from '@actions/exec';
+import { restoreCache, saveCache } from '@actions/cache';
+ 
 import IPlatform from './platforms/platform';
 import LinuxPlatform from './platforms/linuxplatform';
 import AndroidPlatform from "./platforms/androidplatform";
@@ -17,12 +18,15 @@ import MacosPlatform from './platforms/macosplatform';
 
 import Downloader from './downloader';
 import VersionNumber from './versionnumber';
-import { URL } from 'url';
+
+const exists = promisify(existsCb);
 
 export default class Installer
 {
+	private static CacheDir = path.join(".cache", "qt");
 	private readonly _version: VersionNumber;
 	private readonly _platform: IPlatform;
+	private readonly _cacheKey: string;
 	private readonly _downloader: Downloader;
 	private readonly _tempDir: string;
 
@@ -57,7 +61,8 @@ export default class Installer
 		default:
 			throw `Install platform ${os.platform()} is not supported by this action`;
 		}
-		
+
+		this._cacheKey = `qt_${host}_${arch}_${this._platform.platform}_${version}`;
 		this._downloader = new Downloader(host, 
 			arch, 
 			this._version,
@@ -65,58 +70,44 @@ export default class Installer
 			this._platform.installPlatform());
 	}
 
-	public async getQt(packages: string, deepSrc: string, flatSrc: string, cachedir: string, clean: string): Promise<void> {
-		// install qdep
-		const pythonPath: string = await io.which('python', true);
-		core.debug(`Using python: ${pythonPath}`);
-		await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
-		const qdepPath = await io.which('qdep', true);
-		await ex.exec(qdepPath, ["--version"]);
-		core.info("Installed qdep");
-		
-		// check caches for Qt installation
-		let toolPath: string | null = null;
-		if (cachedir) {
-			if (fssync.existsSync(path.join(cachedir, "bin", this._platform.qmakeName()))) {
-				toolPath = path.resolve(cachedir);
-				core.debug('Using globally cached Qt: ' + toolPath);
-			}
-		} else
-			toolPath = tc.find('qt', this._version.toString(), this._platform.platform);
-	
-		// clean if required
-		if (clean == "true" && toolPath) {
-			core.info("Cleaning up existing tool cache")
-			await io.rmRF(toolPath);
-			toolPath = null;
-		}
+	public async getQt(packages: string, deepSrc: string, flatSrc: string, clean: string): Promise<void> {
+		// install qdep (don't cache to always get the latest version)
+		await this.installQdep();
 
 		// run pre install
 		await this._platform.runPreInstall();
 
-		// download, extract, cache (if not cached yet)
-		let cached: boolean;
+		// try to get Qt from cache, unless clean is specified
+		let toolPath: string | null = null;
+		if (clean != "true") {
+			core.debug(`Trying to restore Qt from cache with key: ${this._cacheKey} `);
+			const hitKey = await restoreCache([Installer.CacheDir], this._cacheKey);
+			if (hitKey && await exists(path.join(Installer.CacheDir, "bin", this._platform.qmakeName()))) {
+				toolPath = path.resolve(Installer.CacheDir);
+				core.debug(`Restored Qt from cache to path: ${toolPath}`);
+			}
+		}
+
+		// download, extract, cache
 		if (!toolPath) {
-			cached = false;
 			core.debug('Downloading and installing Qt');
 			toolPath = await this.acquireQt(this.parseList(packages, ','),
 				this.parseList(deepSrc, ' '),
-				this.parseList(flatSrc, ' '),
-				cachedir);
-		} else {
-			cached = true;
-			core.debug('Using locally cached Qt: ' + toolPath);
-		}
+				this.parseList(flatSrc, ' '));
+				core.debug(`Caching Qt with key: ${this._cacheKey}`);
+			await this._platform.runPostInstall(false, toolPath);
+			await saveCache([toolPath], this._cacheKey);
+		} else
+			await this._platform.runPostInstall(true, toolPath);
 		core.info('Using Qt installation: ' + toolPath);
+
+		// generate qdep prf
+		await this.generateQdepPrf(toolPath);
 
 		// update output / env vars
 		core.setOutput("qtdir", toolPath);
 		core.addPath(path.join(toolPath, "bin"));
 		this._platform.addExtraEnvVars(toolPath);
-
-		// run post installers
-		await this.generateQdepPrf(toolPath);
-		await this._platform.runPostInstall(cached, toolPath);
 	
 		// log stuff
 		await ex.exec("qmake", ["-version"]);
@@ -129,7 +120,7 @@ export default class Installer
 		core.setOutput("testflags", this._platform.testFlags());
 
 		// set install dir, create artifact symlink
-		const iPath: [string, string] = this._platform.installDirs(toolPath);
+		const iPath = this._platform.installDirs(toolPath);
 		await io.mkdirP(iPath[0]);
 		const instPath = path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), "..", "..");
 		core.setOutput('outdir', instPath);
@@ -161,7 +152,16 @@ export default class Installer
 		return tempDirectory;
 	}
 
-	private async acquireQt(packages: string[], deepSrc: string[], flatSrc: string[], cachedir: string): Promise<string> {
+	private async installQdep(): Promise<void> {
+		const pythonPath: string = await io.which('python', true);
+		core.debug(`Using python: ${pythonPath}`);
+		await ex.exec(pythonPath, ["-m", "pip", "install", "qdep"]);
+		const qdepPath = await io.which('qdep', true);
+		await ex.exec(qdepPath, ["--version"]);
+		core.info("Installed qdep");
+	}
+
+	private async acquireQt(packages: string[], deepSrc: string[], flatSrc: string[]): Promise<string> {
 		// download source definitions
 		await this._downloader.addQtSource();
 		for (const src of deepSrc)
@@ -183,20 +183,16 @@ export default class Installer
 		
 		// move tools
 		const oldToolPath = path.join(installPath, "Tools");
-		if (fssync.existsSync(oldToolPath))
+		if (await exists(oldToolPath))
 			await io.mv(oldToolPath, path.join(dataPath, "Tools"));
 	
-		// install into the local tool cache or global cache
-		let resDir: string;
-		if (cachedir) {
-			await io.mv(dataPath, cachedir);
-			resDir = path.resolve(cachedir);
-		} else
-			resDir = await tc.cacheDir(dataPath, 'qt', this._version.toString(), this._platform.platform);
+		// move out of install dir to seperate dir
+		await io.rmRF(Installer.CacheDir);
+		await io.mv(dataPath, Installer.CacheDir);
 
 		// remove tmp installation to free some space
 		await io.rmRF(installPath);
-		return resDir;
+		return Installer.CacheDir;
 	}
 
 	private async generateQdepPrf(installPath: string) {

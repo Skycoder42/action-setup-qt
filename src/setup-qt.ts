@@ -8,7 +8,6 @@ async function run() {
 		await installer.getQt(core.getInput('packages'), 
 			core.getInput('deep-sources'), 
 			core.getInput('flat-sources'), 
-			core.getInput('cachedir'), 
 			core.getInput('clean'));
 	} catch (error) {
 		console.log(error);
