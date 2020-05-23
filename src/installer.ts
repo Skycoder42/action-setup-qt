@@ -1,5 +1,5 @@
-import os from 'os';
-import path from 'path';
+import { platform as osPlatform } from 'os';
+import { join, resolve } from 'path';
 import { exists as existsCb } from 'fs';
 import { URL } from 'url';
 import { promisify } from 'util';
@@ -8,7 +8,7 @@ import { debug, info, setOutput, addPath } from '@actions/core';
 import { mv, rmRF, mkdirP, which } from '@actions/io';
 import { exec } from '@actions/exec';
 import { restoreCache, saveCache } from '@actions/cache';
- 
+
 import IPlatform from './platforms/platform';
 import LinuxPlatform from './platforms/linuxplatform';
 import AndroidPlatform from "./platforms/androidplatform";
@@ -21,9 +21,8 @@ import VersionNumber from './versionnumber';
 
 const exists = promisify(existsCb);
 
-export default class Installer
-{
-	private static CacheDir = path.join(".cache", "qt");
+export default class Installer {
+	private static CacheDir = join(".cache", "qt");
 	private readonly _version: VersionNumber;
 	private readonly _platform: IPlatform;
 	private readonly _cacheKey: string;
@@ -31,40 +30,40 @@ export default class Installer
 	private readonly _tempDir: string;
 
 	public constructor(version: string, platform: string) {
-		this._tempDir = this.initTempDir(os.platform());
+		this._tempDir = this.initTempDir(osPlatform());
 
 		this._version = VersionNumber.fromString(version);
 		let host: string;
 		let arch: string;
-		switch (os.platform()) {
-		case "linux":
-			if (platform.includes("android"))
-				this._platform = new AndroidPlatform(platform);
-			else
-				this._platform = new LinuxPlatform(platform);
-			host = "linux";
-			arch = "x64";
-			break;
-		case "win32":
-			if (platform.includes("mingw"))
-				this._platform = new MingwPlatform(platform, this._version);
-			else
-				this._platform = new MsvcPlatform(platform, this._version);
-			host = "windows";
-			arch = "x86";
-			break;
-		case "darwin":
-			this._platform = new MacosPlatform(platform);
-			host = "mac";
-			arch = "x64";
-			break;
-		default:
-			throw `Install platform ${os.platform()} is not supported by this action`;
+		switch (osPlatform()) {
+			case "linux":
+				if (platform.includes("android"))
+					this._platform = new AndroidPlatform(platform);
+				else
+					this._platform = new LinuxPlatform(platform);
+				host = "linux";
+				arch = "x64";
+				break;
+			case "win32":
+				if (platform.includes("mingw"))
+					this._platform = new MingwPlatform(platform, this._version);
+				else
+					this._platform = new MsvcPlatform(platform, this._version);
+				host = "windows";
+				arch = "x86";
+				break;
+			case "darwin":
+				this._platform = new MacosPlatform(platform);
+				host = "mac";
+				arch = "x64";
+				break;
+			default:
+				throw `Install platform ${osPlatform()} is not supported by this action`;
 		}
 
 		this._cacheKey = `qt_${host}_${arch}_${this._platform.platform}_${version}`;
-		this._downloader = new Downloader(host, 
-			arch, 
+		this._downloader = new Downloader(host,
+			arch,
 			this._version,
 			this._platform.platform,
 			this._platform.installPlatform());
@@ -82,8 +81,8 @@ export default class Installer
 		if (clean != "true") {
 			debug(`Trying to restore Qt from cache with key: ${this._cacheKey} `);
 			const hitKey = await restoreCache([Installer.CacheDir], this._cacheKey);
-			if (hitKey && await exists(path.join(Installer.CacheDir, "bin", this._platform.qmakeName()))) {
-				toolPath = path.resolve(Installer.CacheDir);
+			if (hitKey && await exists(join(Installer.CacheDir, "bin", this._platform.qmakeName()))) {
+				toolPath = resolve(Installer.CacheDir);
 				debug(`Restored Qt from cache to path: ${toolPath}`);
 			}
 		}
@@ -94,7 +93,7 @@ export default class Installer
 			toolPath = await this.acquireQt(this.parseList(packages, ','),
 				this.parseList(deepSrc, ' '),
 				this.parseList(flatSrc, ' '));
-				debug(`Caching Qt with key: ${this._cacheKey}`);
+			debug(`Caching Qt with key: ${this._cacheKey}`);
 			await this._platform.runPostInstall(false, toolPath);
 			await saveCache([toolPath], this._cacheKey);
 		} else
@@ -106,9 +105,9 @@ export default class Installer
 
 		// update output / env vars
 		setOutput("qtdir", toolPath);
-		addPath(path.join(toolPath, "bin"));
+		addPath(join(toolPath, "bin"));
 		this._platform.addExtraEnvVars(toolPath);
-	
+
 		// log stuff
 		await exec("qmake", ["-version"]);
 		await exec("qmake", ["-query"]);
@@ -122,7 +121,7 @@ export default class Installer
 		// set install dir, create artifact symlink
 		const iPath = this._platform.installDirs(toolPath);
 		await mkdirP(iPath[0]);
-		const instPath = path.join(iPath[0], os.platform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), "..", "..");
+		const instPath = join(iPath[0], osPlatform() == "win32" ? toolPath.substr(3) : toolPath.substr(1), "..", "..");
 		setOutput('outdir', instPath);
 		setOutput('installdir', iPath[1]);
 	}
@@ -147,7 +146,7 @@ export default class Installer
 				else
 					baseLocation = '/home'
 			}
-			tempDirectory = path.join(baseLocation, 'actions', 'temp')
+			tempDirectory = join(baseLocation, 'actions', 'temp')
 		}
 		return tempDirectory;
 	}
@@ -177,15 +176,15 @@ export default class Installer
 			this._downloader.addDownload(pkg, true);
 
 		// download and install
-		const installPath = path.join(this._tempDir, 'qt');
+		const installPath = join(this._tempDir, 'qt');
 		await this._downloader.installTo(installPath);
-		const dataPath = path.join(installPath, this._version.toString(), this._platform.platform);
-		
+		const dataPath = join(installPath, this._version.toString(), this._platform.platform);
+
 		// move tools
-		const oldToolPath = path.join(installPath, "Tools");
+		const oldToolPath = join(installPath, "Tools");
 		if (await exists(oldToolPath))
-			await mv(oldToolPath, path.join(dataPath, "Tools"));
-	
+			await mv(oldToolPath, join(dataPath, "Tools"));
+
 		// move out of install dir to seperate dir
 		await rmRF(Installer.CacheDir);
 		await mv(dataPath, Installer.CacheDir);
@@ -197,7 +196,7 @@ export default class Installer
 
 	private async generateQdepPrf(installPath: string) {
 		// add qdep prf file
-		const qmakePath = path.join(installPath, "bin", this._platform.qmakeName());
+		const qmakePath = join(installPath, "bin", this._platform.qmakeName());
 		const qdepPath = await which('qdep', true);
 		await exec(qdepPath, ["prfgen", "--qmake", qmakePath]);
 		info("Successfully prepared qdep");

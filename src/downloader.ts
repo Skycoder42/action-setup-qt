@@ -1,23 +1,25 @@
-import crypto from "crypto";
-import fs from "fs";
-import https from "https";
-import path from "path";
+import { promisify } from "util";
+import { createHash } from "crypto";
+import { writeFile as writeFileCB, appendFile as appendFileCB, createReadStream } from "fs";
+import { get } from "https";
+import { basename, join } from "path";
 import { URL } from "url";
-import util from "util";
 
-import xml from "fast-xml-parser";
+import { parse } from "fast-xml-parser";
 
-import * as core from "@actions/core";
-import * as io from "@actions/io";
-import * as ex from "@actions/exec";
-import * as tc from "@actions/tool-cache";
+import { debug, warning, info } from "@actions/core";
+import { mkdirP, which } from "@actions/io";
+import { exec } from "@actions/exec";
+import { downloadTool } from "@actions/tool-cache";
 
 import VersionNumber from "./versionnumber";
-import { XmlRoot, XmlPackageUpdate } from "./updates-xml";
+import { XmlRoot } from "./updates-xml";
 import Package from "./package";
 
-class Downloader
-{
+const writeFile = promisify(writeFileCB);
+const appendFile = promisify(appendFileCB);
+
+class Downloader {
     private readonly _version: VersionNumber;
     private readonly _platform: string;
     private readonly _pkgPlatform: string;
@@ -26,8 +28,7 @@ class Downloader
     private _packages: Map<string, Package>;
     private _downloads: string[];
 
-    public constructor(os: string, arch: string, version: VersionNumber, platform: string, instPlatform: string)
-    {
+    public constructor(os: string, arch: string, version: VersionNumber, platform: string, instPlatform: string) {
         this._version = version;
         this._platform = platform;
         this._pkgPlatform = instPlatform;
@@ -64,17 +65,17 @@ class Downloader
             subPath.push("qt" + this._version.toString(""));
 
         const sourceUrl = new URL(subPath.join('/') + '/', url);
-        core.debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
+        debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
         const reply = await this.get(new URL("Updates.xml", sourceUrl), "text/xml");
-        const update: XmlRoot = xml.parse(reply);
+        const update: XmlRoot = parse(reply);
 
         if (typeof update.Updates.PackageUpdate == 'undefined')
             return;
-        if (!Array.isArray(update.Updates.PackageUpdate)) 
+        if (!Array.isArray(update.Updates.PackageUpdate))
             update.Updates.PackageUpdate = [update.Updates.PackageUpdate];
         const filtered = update.Updates.PackageUpdate
             ?.filter(x => x.Name.endsWith("." + this._pkgPlatform));
-        core.debug(`Downloaded ${filtered?.length} valid module configurations from ${url}`);
+        debug(`Downloaded ${filtered?.length} valid module configurations from ${url}`);
         filtered?.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
     }
 
@@ -85,20 +86,20 @@ class Downloader
                 "desktop",
                 "tools_" + type
             ];
-    
+
             const sourceUrl = new URL(subPath.join('/') + '/', url);
-            core.debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
+            debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
             const reply = await this.get(new URL("Updates.xml", sourceUrl), "text/xml");
-            const update: XmlRoot = xml.parse(reply);
+            const update: XmlRoot = parse(reply);
             if (typeof update.Updates.PackageUpdate == 'undefined')
                 return true;
-            if (!Array.isArray(update.Updates.PackageUpdate)) 
+            if (!Array.isArray(update.Updates.PackageUpdate))
                 update.Updates.PackageUpdate = [update.Updates.PackageUpdate];
-            core.debug(`Downloaded ${update.Updates.PackageUpdate?.length} valid module configurations from ${url}`);
+            debug(`Downloaded ${update.Updates.PackageUpdate?.length} valid module configurations from ${url}`);
             update.Updates.PackageUpdate?.reduce((map, x) => map.set(this.stripPackageName(x.Name), new Package(x, sourceUrl)), this._packages);
             return true;
         } catch (error) {
-            core.warning(`Failed to get tool sources for tool type "${type}" with error: ${error.message}`);
+            warning(`Failed to get tool sources for tool type "${type}" with error: ${error.message}`);
             return false;
         }
     }
@@ -115,30 +116,30 @@ class Downloader
             if (required)
                 throw new Error(`Unable to download required Qt package "${name}"`);
             else {
-                core.info(`Skipping optional module ${name} because it was not found in the module list`);
+                info(`Skipping optional module ${name} because it was not found in the module list`);
                 return false;
             }
         }
-        
+
         for (const dep of pkg.dependencies(this._pkgPlatform)) {
             if (!this.addDownload(this.stripPackageName(dep), required)) {
-                core.info(`Skipping optional module ${name} because at least one of its dependencies was not found`);
+                info(`Skipping optional module ${name} because at least one of its dependencies was not found`);
                 return false;
             }
         }
 
         if (!this._downloads.includes(name)) {
             this._downloads.push(name);
-            core.info(`Added module ${name} to be installed`);
-        } else 
-            core.debug(`Module ${name} has already been added`);
+            info(`Added module ${name} to be installed`);
+        } else
+            debug(`Module ${name} has already been added`);
         return true;
     }
 
     public async installTo(basePath: string): Promise<void> {
         const archives = await this.download();
 
-        core.info(`Extracting archives to ${basePath}...`);
+        info(`Extracting archives to ${basePath}...`);
         for (const archive of archives)
             await this.extract(basePath, archive);
         await this.writeConfigs(basePath);
@@ -148,9 +149,9 @@ class Downloader
         if (this._platform.includes("android"))
             return "android";
         else if (this._platform.includes("winrt"))
-            return "winrt";   
+            return "winrt";
         else if (this._platform.includes("ios"))
-            return "ios"; 
+            return "ios";
         else
             return "desktop";
     }
@@ -175,75 +176,73 @@ class Downloader
     private async download(): Promise<string[]> {
         const result: string[] = [];
 
-        core.info(`Downloading install archives for ${this._downloads.length} modules...`);
+        info(`Downloading install archives for ${this._downloads.length} modules...`);
         for (const name of this._downloads) {
             const pkg = this._packages?.get(name);
             if (!pkg)
                 throw new Error(`Unable to download required Qt package "${name}"`);
-            
+
             for (const archive of pkg.archives) {
                 const sha1sum = await this.get(new URL(pkg.shaPath(archive), pkg.url));
                 const archiveUrl = new URL(pkg.dlPath(archive), pkg.url);
                 archiveUrl.protocol = "http";
-                const archivePath = await tc.downloadTool(archiveUrl.toString());
+                const archivePath = await downloadTool(archiveUrl.toString());
                 if (!await this.verifyHashsum(archivePath, sha1sum))
                     throw new Error(`Invalid sha1sum for archive ${archive}`);
                 result.push(archivePath);
             }
         }
 
-        core.debug(`Completed download of ${result.length} archives`);
+        debug(`Completed download of ${result.length} archives`);
         return result;
     }
 
     private async verifyHashsum(path: string, sha1sum: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             try {
-                const hasher = crypto.createHash('sha1');
-                const stream = fs.createReadStream(path);
+                const hasher = createHash('sha1');
+                const stream = createReadStream(path);
                 stream.on('error', e => reject(e));
                 stream.on('data', chunk => hasher.update(chunk));
                 stream.on('end', () => resolve(hasher.digest('hex').toLowerCase() == sha1sum));
-            } catch(error) {
+            } catch (error) {
                 reject(error);
             }
         });
     }
 
     private async extract(basePath: string, archive: string): Promise<void> {
-        await io.mkdirP(basePath);
-        const szPath = await io.which("7z", true);
-        core.debug(`Extracting archive ${path.basename(archive)}...`);
-        await ex.exec(szPath, ['x', '-bb1', '-bd', '-y', '-sccUTF-8', archive], {
+        await mkdirP(basePath);
+        const szPath = await which("7z", true);
+        debug(`Extracting archive ${basename(archive)}...`);
+        await exec(szPath, ['x', '-bb1', '-bd', '-y', '-sccUTF-8', archive], {
             cwd: basePath,
             silent: true
         });
     }
 
     private async writeConfigs(basePath: string): Promise<void> {
-        core.info("Writing configuration files...");
-        const writeFile = util.promisify(fs.writeFile);
-        const appendFile = util.promisify(fs.appendFile);
+        info("Writing configuration files...");
 
-        const fullPath = path.join(basePath, this._version.toString(), this._platform);
+        const fullPath = join(basePath, this._version.toString(), this._platform);
         // write qt.conf
-        core.debug("Writing bin/qt.conf...");
-        await writeFile(path.join(fullPath, "bin", "qt.conf"), "[Paths]\nPrefix=..\n", "utf-8");
+        debug("Writing bin/qt.conf...");
+        await writeFile(join(fullPath, "bin", "qt.conf"), "[Paths]\nPrefix=..\n", "utf-8");
         // update qconfig.pri
-        core.debug("Writing mkspecs/qconfig.pri...");
-        await appendFile(path.join(fullPath, "mkspecs", "qconfig.pri"), "QT_EDITION = OpenSource\nQT_LICHECK = \n", "utf-8");
+        debug("Writing mkspecs/qconfig.pri...");
+        await appendFile(join(fullPath, "mkspecs", "qconfig.pri"), "QT_EDITION = OpenSource\nQT_LICHECK = \n", "utf-8");
     }
 
-    private async get(url: URL, contentType: string | null = null) : Promise<string> {
-        core.debug(`Requesting GET ${url}`);
+    private async get(url: URL, contentType: string | null = null): Promise<string> {
+        debug(`Requesting GET ${url}`);
         return new Promise<string>((resolve, reject) => {
-            https.get(url, res => {
+            get(url, res => {
                 try {
                     if (!res.statusCode || res.statusCode >= 300)
                         throw new Error(`Request failed with status code ${res.statusCode}`);
                     if (contentType && res.headers['content-type'] != contentType)
                         throw new Error(`Request failed with invalid content type "${res.headers['content-type']}"`);
-                    
+
                     res.setEncoding("utf-8");
                     let rawData: string = '';
                     res.on('error', e => reject(e));
