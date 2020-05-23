@@ -40,6 +40,6 @@ outputs:
   outdir:
     description: 'The path where installed files go after installing to installdir'
 runs:
-  using: 'node14'
+  using: 'node12'
   main: 'lib/setup-qt.js'
 
