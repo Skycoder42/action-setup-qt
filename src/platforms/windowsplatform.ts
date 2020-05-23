@@ -1,10 +1,9 @@
-import * as ex from '@actions/exec';
+import { exec } from '@actions/exec';
 
 import IPlatform from "./platform";
 import VersionNumber from '../versionnumber';
 
-export default abstract class WindowsPlatform implements IPlatform
-{
+export default abstract class WindowsPlatform implements IPlatform {
     public platform: string;
     protected _version: VersionNumber;
 
@@ -12,22 +11,22 @@ export default abstract class WindowsPlatform implements IPlatform
         this.platform = platform;
         this._version = version;
     }
-    
+
     public abstract installPlatform(): string
     public abstract makeName(): string
     public abstract installDirs(toolPath: string): [string, string]
 
-    public addExtraEnvVars(_basePath: string): void {}
+    public addExtraEnvVars(_basePath: string): void { }
 
     public extraTools(): string[] {
         return [];
     }
 
     public async runPreInstall(): Promise<void> {
-        await ex.exec("choco", ["install", "openssl", "--x86", "-y", "--no-progress"]);
+        await exec("choco", ["install", "openssl", "--x86", "-y", "--no-progress"]);
     }
 
-    public async runPostInstall(_cached: boolean, _instDir: string): Promise<void> {}
+    public async runPostInstall(_cached: boolean, _instDir: string): Promise<void> { }
 
     public shellName(): string {
         return "cmd";

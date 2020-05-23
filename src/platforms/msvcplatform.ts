@@ -1,10 +1,13 @@
-import path from 'path';
-import fs from 'fs';
+import { promisify } from 'util';
+import { join } from 'path';
+import { exists as existsCB } from 'fs';
 
-import * as core from "@actions/core";
-import * as ex from "@actions/exec";
+import { exportVariable, info, debug, warning } from "@actions/core";
+import { exec } from "@actions/exec";
 
 import WindowsPlatform from './windowsplatform';
+
+const exists = promisify(existsCB);
 
 export default class MsvcPlatform extends WindowsPlatform {
     public installPlatform(): string {
@@ -32,7 +35,7 @@ export default class MsvcPlatform extends WindowsPlatform {
         const instDir = `${toolPath.substr(0, 2)}\\Users\\runneradmin\\install`;
         return [instDir, instDir.substr(2)];
     }
-    
+
     public async runPostInstall(cached: boolean, instDir: string): Promise<void> {
         await super.runPostInstall(cached, instDir);
 
@@ -40,8 +43,8 @@ export default class MsvcPlatform extends WindowsPlatform {
         for (let vsVersion of [2019, 2017]) {
             const vsDir = `${process.env["ProgramFiles(x86)"]}\\Microsoft Visual Studio\\${vsVersion}\\Enterprise\\`;
             const vcDir = `${vsDir}VC\\Auxiliary\\Build`;
-            if (fs.existsSync(path.join(vcDir, "vcvarsall.bat"))) {
-                core.exportVariable("VSINSTALLDIR", vsDir);
+            if (await exists(join(vcDir, "vcvarsall.bat"))) {
+                exportVariable("VSINSTALLDIR", vsDir);
 
                 const vcvLine: string[] = [".\\vcvarsall.bat", this.vcArch()];
                 const vcVersion = this.vcVersion(vsVersion);
@@ -50,8 +53,8 @@ export default class MsvcPlatform extends WindowsPlatform {
                 vcvLine.push("&&", "set");
 
                 let fullBuffer = '';
-                core.info(`Running ${vcvLine.join(" ")}`);
-                await ex.exec(vcvLine.join(" "), undefined, {
+                info(`Running ${vcvLine.join(" ")}`);
+                await exec(vcvLine.join(" "), undefined, {
                     cwd: vcDir,
                     windowsVerbatimArguments: true,
                     silent: true,
@@ -66,16 +69,16 @@ export default class MsvcPlatform extends WindowsPlatform {
                         const name = line.substr(0, eqIdx);
                         const value = line.substr(eqIdx + 1);
                         if (process.env[name] != value) {
-                            core.debug(`Exporting env var ${name}=${value}`);
-                            core.exportVariable(name, value);
+                            debug(`Exporting env var ${name}=${value}`);
+                            exportVariable(name, value);
                         }
                     } else
-                        core.warning(`Line is not an environment variable: ${line}`);
+                        warning(`Line is not an environment variable: ${line}`);
                 }
                 return;
             }
         }
-        
+
         throw Error("Unable to find a valid Visual Studio installation");
     }
 

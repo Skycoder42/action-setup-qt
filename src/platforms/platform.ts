@@ -1,5 +1,4 @@
-export default interface IPlatform
-{
+export default interface IPlatform {
     platform: string;
 
     installPlatform(): string;

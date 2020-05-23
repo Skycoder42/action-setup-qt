@@ -1,7 +1,6 @@
-import path from 'path';
+import { join } from 'path';
 
-import * as core from "@actions/core";
-import * as io from "@actions/io";
+import { addPath } from "@actions/core";
 
 import WindowsPlatform from './windowsplatform';
 import VersionNumber from '../versionnumber';
@@ -32,8 +31,8 @@ export default class MingwPlatform extends WindowsPlatform {
 
     public addExtraEnvVars(basePath: string): void {
         super.addExtraEnvVars(basePath);
-        core.addPath(path.join(basePath, 
-            "Tools", 
+        addPath(join(basePath,
+            "Tools",
             this._isX64 ? "mingw730_64" : "mingw730_32",
             "bin"));
     }

@@ -1,18 +1,18 @@
-import * as core from "@actions/core";
+import {getInput, error, setFailed} from "@actions/core";
 
 import Installer from "./installer";
 
 async function run() {
 	try {
-		const installer = new Installer(core.getInput('version'), core.getInput('platform'));
-		await installer.getQt(core.getInput('packages'), 
-			core.getInput('deep-sources'), 
-			core.getInput('flat-sources'), 
-			core.getInput('clean'));
-	} catch (error) {
-		console.log(error);
-		core.error(error.message);
-		core.setFailed(error.message);
+		const installer = new Installer(getInput('version'), getInput('platform'));
+		await installer.getQt(getInput('packages'), 
+			getInput('deep-sources'), 
+			getInput('flat-sources'), 
+			getInput('clean'));
+	} catch (e) {
+		console.error(e);
+		error(e.message);
+		setFailed(e.message);
 	}
 }
 
