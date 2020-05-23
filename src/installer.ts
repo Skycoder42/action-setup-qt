@@ -4,7 +4,7 @@ import { exists as existsCb } from 'fs';
 import { URL } from 'url';
 import { promisify } from 'util';
 
-import { debug, info, setOutput, addPath } from '@actions/core';
+import { debug, info, setOutput, addPath, warning } from '@actions/core';
 import { mv, rmRF, mkdirP, which } from '@actions/io';
 import { exec } from '@actions/exec';
 import { restoreCache, saveCache } from '@actions/cache';
@@ -95,7 +95,11 @@ export default class Installer {
 				this.parseList(flatSrc, ' '));
 			debug(`Caching Qt with key: ${this._cacheKey}`);
 			await this._platform.runPostInstall(false, toolPath);
-			await saveCache([toolPath], this._cacheKey);
+			try {
+				await saveCache([toolPath], this._cacheKey);
+			} catch ({ message }) {
+				warning(`Failed to save cache with error: ${message}`);
+			}
 		} else
 			await this._platform.runPostInstall(true, toolPath);
 		info('Using Qt installation: ' + toolPath);
