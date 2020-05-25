@@ -1,45 +1,51 @@
-name: 'Setup Qt environment'
-description: 'Setup Qt by using the prebuilt binaries the Qt-Company provides'
-author: 'Skycoder42'
-inputs: 
+name: "Setup Qt environment"
+description: "Setup Qt by using the prebuilt binaries the Qt-Company provides"
+author: "Skycoder42"
+inputs:
   version:
-    description: 'The Qt version to download and install. Example: 5.13.1'
+    description: "The Qt version to download and install. Example: 5.13.1"
     required: true
   platform:
-    description: 'A version dependend platform package to be installed. Example: gcc_64'
+    description: "A version dependend platform package to be installed. Example: gcc_64"
     required: true
   packages:
-    description: 'A comma seperated list of additional packages to be installed. Example: qtnetworkauth,qtwebengine,qt.tools.ifw.32'
+    description: "A comma seperated list of additional packages to be installed. Example: qtnetworkauth,qtwebengine,qt.tools.ifw.32"
     required: false
-    default: ''
+    default: ""
   deep-sources:
     description: 'A space seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/<type>/qt5_qt<version>/<module>"'
     required: false
-    default: ''
+    default: ""
   flat-sources:
     description: 'A space seperated list of additional URLs to download modules from. Modules should be layed out as "<url>/<os>_<arch>/qt<version>/<module>"'
     required: false
-    default: ''
-  clean:
-    description: 'Perform a clean installation, ignoring any caches'
+    default: ""
+  cache-mode:
+    description: 'Specify the cache mode. Must be one of "default", "none", "post"'
     required: false
-    default: 'false'
+    default: "default"
+  clean:
+    description: "Perform a clean installation, ignoring any caches"
+    required: false
+    default: "false"
 outputs:
   shell:
-    description: 'The shell that should be used to run qmake/make commands'
+    description: "The shell that should be used to run qmake/make commands"
   make:
     description: 'Name of the "make" executable to be used, i.e. name, nmake or mingw32-make'
   tests:
-    description: 'Set to true if tests should be run, false otherwise'
+    description: "Set to true if tests should be run, false otherwise"
   testflags:
-    description: 'makeflags to be used when running tests'
+    description: "makeflags to be used when running tests"
   qtdir:
-    description: 'The path where qt was installed'
+    description: "The path where qt was installed"
   installdir:
-    description: 'The path to install stuff to before packing them as artifact'
+    description: "The path to install stuff to before packing them as artifact"
   outdir:
-    description: 'The path where installed files go after installing to installdir'
+    description: "The path where installed files go after installing to installdir"
 runs:
-  using: 'node12'
-  main: 'lib/setup-qt.js'
+  using: "node12"
+  main: "lib/main.js"
+#  post: 'lib/post.js'
+#  post-if: 'success()'
 
