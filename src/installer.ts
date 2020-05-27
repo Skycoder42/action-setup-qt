@@ -17,41 +17,48 @@ import MsvcPlatform from "./platforms/msvcplatform";
 import MacosPlatform from "./platforms/macosplatform";
 
 import Downloader from "./downloader";
-import VersionNumber from "./versionnumber";
+import { Config } from "./config";
 
 const exists = promisify(existsCb);
 
 export default class Installer {
   private static CacheDir = join(".cache", "qt");
-  private readonly _version: VersionNumber;
+  private readonly _config: Config;
   private readonly _platform: IPlatform;
   private readonly _cacheKey: string;
   private readonly _downloader: Downloader;
   private readonly _tempDir: string;
 
-  public constructor(version: VersionNumber, platform: string) {
+  public constructor(config: Config) {
     this._tempDir = this.initTempDir(osPlatform());
 
-    this._version = version;
+    this._config = config;
     let host: string;
     let arch: string;
     switch (osPlatform()) {
       case "linux":
-        if (platform.includes("android"))
-          this._platform = new AndroidPlatform(platform);
-        else this._platform = new LinuxPlatform(platform);
+        if (this._config.platform.includes("android"))
+          this._platform = new AndroidPlatform(this._config.platform);
+        else this._platform = new LinuxPlatform(this._config.platform);
         host = "linux";
         arch = "x64";
         break;
       case "win32":
-        if (platform.includes("mingw"))
-          this._platform = new MingwPlatform(platform, this._version);
-        else this._platform = new MsvcPlatform(platform, this._version);
+        if (this._config.platform.includes("mingw"))
+          this._platform = new MingwPlatform(
+            this._config.platform,
+            this._config.version
+          );
+        else
+          this._platform = new MsvcPlatform(
+            this._config.platform,
+            this._config.version
+          );
         host = "windows";
         arch = "x86";
         break;
       case "darwin":
-        this._platform = new MacosPlatform(platform);
+        this._platform = new MacosPlatform(this._config.platform);
         host = "mac";
         arch = "x64";
         break;
@@ -59,22 +66,17 @@ export default class Installer {
         throw `Install platform ${osPlatform()} is not supported by this action`;
     }
 
-    this._cacheKey = `qt_${host}_${arch}_${this._platform.platform}_${version}`;
+    this._cacheKey = `qt_${host}_${arch}_${this._config.platform}_${this._config.version}`;
     this._downloader = new Downloader(
       host,
       arch,
-      this._version,
-      this._platform.platform,
+      this._config.version,
+      this._config.platform,
       this._platform.installPlatform()
     );
   }
 
-  public async getQt(
-    packages: string[],
-    deepSrc: string[],
-    flatSrc: string[],
-    clean: boolean
-  ): Promise<void> {
+  public async getQt(): Promise<void> {
     // install qdep (don't cache to always get the latest version)
     await this.installQdep();
 
@@ -83,7 +85,7 @@ export default class Installer {
 
     // try to get Qt from cache, unless clean is specified
     let toolPath: string | null = null;
-    if (!clean) {
+    if (!this._config.clean) {
       debug(`Trying to restore Qt from cache with key: ${this._cacheKey} `);
       const hitKey = await restoreCache([Installer.CacheDir], this._cacheKey);
       if (
@@ -100,7 +102,7 @@ export default class Installer {
     // download, extract, cache
     if (!toolPath) {
       debug("Downloading and installing Qt");
-      toolPath = await this.acquireQt(packages, deepSrc, flatSrc);
+      toolPath = await this.acquireQt();
       debug(`Caching Qt with key: ${this._cacheKey}`);
       await this._platform.runPostInstall(false, toolPath);
       try {
@@ -167,31 +169,28 @@ export default class Installer {
     info("Installed qdep");
   }
 
-  private async acquireQt(
-    packages: string[],
-    deepSrc: string[],
-    flatSrc: string[]
-  ): Promise<string> {
+  private async acquireQt(): Promise<string> {
     // download source definitions
     await this._downloader.addQtSource();
-    for (const src of deepSrc)
+    for (const src of this._config.deepSources)
       await this._downloader.addSource(new URL(src), true);
-    for (const src of flatSrc)
+    for (const src of this._config.flatSources)
       await this._downloader.addSource(new URL(src), false);
 
     // add packages
     debug(`Available modules: ${this._downloader.modules().join(", ")}`);
     for (const pkg of this._platform.extraTools())
       this._downloader.addDownload(pkg, true);
-    for (const pkg of packages) this._downloader.addDownload(pkg, true);
+    for (const pkg of this._config.packages)
+      this._downloader.addDownload(pkg, true);
 
     // download and install
     const installPath = join(this._tempDir, "qt");
     await this._downloader.installTo(installPath);
     const dataPath = join(
       installPath,
-      this._version.toString(),
-      this._platform.platform
+      this._config.version.toString(),
+      this._config.platform
     );
 
     // move tools
@@ -217,7 +216,7 @@ export default class Installer {
   }
 
   private shouldTest(): boolean {
-    const platform = this._platform.platform;
+    const platform = this._config.platform;
     if (
       platform.includes("android") ||
       platform.includes("wasm") ||

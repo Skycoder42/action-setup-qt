@@ -6,13 +6,9 @@ import WindowsPlatform from "./windowsplatform";
 import VersionNumber from "../versionnumber";
 
 export default class MingwPlatform extends WindowsPlatform {
-  public constructor(platform: string, version: VersionNumber) {
-    super(platform, version);
-  }
-
   public installPlatform(): string {
     for (const minGwVersion of [81, 73]) {
-      switch (this.platform) {
+      switch (this._platform) {
         case `mingw${minGwVersion}_64`:
           return `win64_mingw${minGwVersion}`;
         case `mingw${minGwVersion}_32`:
@@ -22,7 +18,7 @@ export default class MingwPlatform extends WindowsPlatform {
       }
     }
 
-    throw Error(`Unsupported platform ${this.platform}`);
+    throw Error(`Unsupported platform ${this._platform}`);
   }
 
   public makeName(): string {
@@ -43,7 +39,7 @@ export default class MingwPlatform extends WindowsPlatform {
       join(
         basePath,
         "Tools",
-        this.platform.substr(0, 7) + "0" + this.platform.substr(8),
+        this._platform.substr(0, 7) + "0" + this._platform.substr(8),
         "bin"
       )
     );

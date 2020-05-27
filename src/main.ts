@@ -1,20 +1,12 @@
-import { getInput, error, setFailed } from "@actions/core";
+import { error, setFailed } from "@actions/core";
 
 import Installer from "./installer";
-import { getParam, Options } from "./options";
+import { loadConfig } from "./config";
 
 async function run() {
   try {
-    const installer = new Installer(
-      getParam(Options.Version, true),
-      getParam(Options.Platform, true)
-    );
-    await installer.getQt(
-      getParam(Options.Packages, false),
-      getParam(Options.DeepSources, false),
-      getParam(Options.FlatSources, false),
-      getParam(Options.Clean, false)
-    );
+    const installer = new Installer(loadConfig());
+    await installer.getQt();
   } catch (e) {
     console.error(e);
     error(e.message);

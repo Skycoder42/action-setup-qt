@@ -12,7 +12,7 @@ const exists = promisify(existsCB);
 export default class MsvcPlatform extends WindowsPlatform {
   public installPlatform(): string {
     for (const year of [2017, 2019]) {
-      switch (this.platform) {
+      switch (this._platform) {
         case `msvc${year}_64`:
           return `win64_msvc${year}_64`;
         case `msvc${year}`:
@@ -28,7 +28,7 @@ export default class MsvcPlatform extends WindowsPlatform {
       }
     }
 
-    throw Error(`Unsupported platform ${this.platform}`);
+    throw Error(`Unsupported platform ${this._platform}`);
   }
 
   public makeName(): string {
@@ -85,14 +85,14 @@ export default class MsvcPlatform extends WindowsPlatform {
   }
 
   private vcArch(): string {
-    if (this.platform.includes("winrt")) return "x64_x86";
-    else if (this.platform.includes("64")) return "x64";
+    if (this._platform.includes("winrt")) return "x64_x86";
+    else if (this._platform.includes("64")) return "x64";
     else return "x86";
   }
 
   private vcVersion(vsVersion: number): string | null {
-    const clvMatch = this.platform.match(/msvc(\d{4})/);
-    if (!clvMatch) throw Error(`Unsupported platform ${this.platform}`);
+    const clvMatch = this._platform.match(/msvc(\d{4})/);
+    if (!clvMatch) throw Error(`Unsupported platform ${this._platform}`);
     const clVersion: number = Number(clvMatch[1]);
     if (vsVersion == clVersion) return null;
     else {
