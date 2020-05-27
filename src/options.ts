@@ -50,8 +50,8 @@ const getParser = <T extends keyof OptionTypes>(key: T): Parser<T> => {
 
 export const getParam = <T extends keyof OptionTypes>(
   key: T,
-  defaultValue?: OptionTypes[T]
+  required: boolean
 ): OptionTypes[T] => {
-  const input = getInput(key, { required: !defaultValue });
+  const input = getInput(key, { required });
   return getParser(key)(input);
 };
