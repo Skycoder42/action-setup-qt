@@ -17,7 +17,7 @@ import MsvcPlatform from "./platforms/msvcplatform";
 import MacosPlatform from "./platforms/macosplatform";
 
 import Downloader from "./downloader";
-import { Config } from "./config";
+import { Config, CacheMode } from "./config";
 
 const exists = promisify(existsCb);
 
@@ -76,7 +76,7 @@ export default class Installer {
     );
   }
 
-  public async getQt(): Promise<void> {
+  public async main(): Promise<void> {
     // install qdep (don't cache to always get the latest version)
     await this.installQdep();
 
@@ -85,7 +85,7 @@ export default class Installer {
 
     // try to get Qt from cache, unless clean is specified
     let toolPath: string | null = null;
-    if (!this._config.clean) {
+    if (this._config.cacheMode !== CacheMode.None && !this._config.clean) {
       debug(`Trying to restore Qt from cache with key: ${this._cacheKey} `);
       const hitKey = await restoreCache([Installer.CacheDir], this._cacheKey);
       if (
@@ -95,7 +95,7 @@ export default class Installer {
         ))
       ) {
         toolPath = resolve(Installer.CacheDir);
-        debug(`Restored Qt from cache to path: ${toolPath}`);
+        info("Restored Qt from cache");
       }
     }
 
@@ -103,14 +103,13 @@ export default class Installer {
     if (!toolPath) {
       debug("Downloading and installing Qt");
       toolPath = await this.acquireQt();
-      debug(`Caching Qt with key: ${this._cacheKey}`);
       await this._platform.runPostInstall(false, toolPath);
-      try {
-        await saveCache([toolPath], this._cacheKey);
-      } catch ({ message }) {
-        warning(`Failed to save cache with error: ${message}`);
+      if (this._config.cacheMode === CacheMode.Default) {
+        await this.storeCache();
       }
-    } else await this._platform.runPostInstall(true, toolPath);
+    } else {
+      await this._platform.runPostInstall(true, toolPath);
+    }
     info("Using Qt installation: " + toolPath);
 
     // generate qdep prf
@@ -142,6 +141,12 @@ export default class Installer {
     );
     setOutput("outdir", instPath);
     setOutput("installdir", iPath[1]);
+  }
+
+  public async post(): Promise<void> {
+    if (this._config.cacheMode === CacheMode.Post) {
+      await this.storeCache();
+    }
   }
 
   private initTempDir(platform: NodeJS.Platform): string {
@@ -204,7 +209,7 @@ export default class Installer {
 
     // remove tmp installation to free some space
     await rmRF(installPath);
-    return Installer.CacheDir;
+    return resolve(Installer.CacheDir);
   }
 
   private async generateQdepPrf(installPath: string) {
@@ -225,5 +230,15 @@ export default class Installer {
     )
       return false;
     else return true;
+  }
+
+  private async storeCache(): Promise<void> {
+    debug(`Caching Qt with key: ${this._cacheKey}`);
+    try {
+      await saveCache([Installer.CacheDir], this._cacheKey);
+      info("Uploaded Qt to cache");
+    } catch ({ message }) {
+      warning(`Failed to save cache with error: ${message}`);
+    }
   }
 }

@@ -46,6 +46,5 @@ outputs:
 runs:
   using: "node12"
   main: "lib/main.js"
-#  post: 'lib/post.js'
-#  post-if: 'success()'
-
+  post: "lib/post.js"
+  post-if: "success()"
