@@ -4,7 +4,15 @@ import { exists as existsCb } from "fs";
 import { URL } from "url";
 import { promisify } from "util";
 
-import { debug, info, setOutput, addPath, warning } from "@actions/core";
+import {
+  debug,
+  info,
+  setOutput,
+  addPath,
+  warning,
+  saveState,
+  getState,
+} from "@actions/core";
 import { mv, rmRF, mkdirP, which } from "@actions/io";
 import { exec } from "@actions/exec";
 import { restoreCache, saveCache } from "@actions/cache";
@@ -22,7 +30,9 @@ import { Config, CacheMode } from "./config";
 const exists = promisify(existsCb);
 
 export default class Installer {
+  private static CacheStateKey = "cache-result";
   private static CacheDir = join(".cache", "qt");
+
   private readonly _config: Config;
   private readonly _platform: IPlatform;
   private readonly _cacheKey: string;
@@ -106,6 +116,8 @@ export default class Installer {
       await this._platform.runPostInstall(false, toolPath);
       if (this._config.cacheMode === CacheMode.Default) {
         await this.storeCache();
+      } else {
+        saveState(Installer.CacheStateKey, "true");
       }
     } else {
       await this._platform.runPostInstall(true, toolPath);
@@ -144,7 +156,8 @@ export default class Installer {
   }
 
   public async post(): Promise<void> {
-    if (this._config.cacheMode === CacheMode.Post) {
+    const shouldCache = getState(Installer.CacheStateKey);
+    if (this._config.cacheMode === CacheMode.Post && shouldCache === "true") {
       await this.storeCache();
     }
   }
