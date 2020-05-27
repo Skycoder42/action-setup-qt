@@ -51,6 +51,6 @@ export default class MingwPlatform extends WindowsPlatform {
 
   public extraTools(): string[] {
     const tools = super.extraTools();
-    return [...tools, `qt.tools.${this.installPlatform}0`];
+    return [...tools, `qt.tools.${this.installPlatform()}0`];
   }
 }
