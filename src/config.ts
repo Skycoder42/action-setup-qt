@@ -27,7 +27,7 @@ export const loadConfig = (): Config => {
   const config: Config = {
     version: VersionNumber.fromString(getInput("version", { required: true })),
     platform: getInput("platform", { required: true }),
-    packages: parseList(getInput("platform"), ","),
+    packages: parseList(getInput("packages"), ","),
     deepSources: parseList(getInput("deep-sources"), " "),
     flatSources: parseList(getInput("flat-sources"), " "),
     cacheMode: getInput("cache-mode") as CacheMode,
