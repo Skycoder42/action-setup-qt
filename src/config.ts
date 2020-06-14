@@ -1,4 +1,4 @@
-import { getInput } from "@actions/core";
+import { getInput, debug } from "@actions/core";
 import VersionNumber from "./versionnumber";
 
 export const enum CacheMode {
@@ -24,7 +24,7 @@ const parseList = (list: string, seperator: string): string[] =>
     .filter((e) => e.length > 0);
 
 export const loadConfig = (): Config => {
-  return {
+  const config: Config = {
     version: VersionNumber.fromString(getInput("version", { required: true })),
     platform: getInput("platform", { required: true }),
     packages: parseList(getInput("platform"), ","),
@@ -33,4 +33,6 @@ export const loadConfig = (): Config => {
     cacheMode: getInput("cache-mode") as CacheMode,
     clean: getInput("clean") === "true",
   };
+  debug(`Using config: ${JSON.stringify(config, undefined, 2)}`);
+  return config;
 };

@@ -197,8 +197,10 @@ export default class Installer {
 
     // add packages
     debug(`Available modules: ${this._downloader.modules().join(", ")}`);
+    debug(`Extra tools: ${this._platform.extraTools()}`);
     for (const pkg of this._platform.extraTools())
       this._downloader.addDownload(pkg, true);
+    debug(`Config packages: ${this._config.packages}`);
     for (const pkg of this._config.packages)
       this._downloader.addDownload(pkg, true);
 
