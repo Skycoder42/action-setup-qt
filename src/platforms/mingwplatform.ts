@@ -39,7 +39,7 @@ export default class MingwPlatform extends WindowsPlatform {
       join(
         basePath,
         "Tools",
-        this._platform.substr(0, 7) + "0" + this._platform.substr(8),
+        this._platform.substr(0, 7) + "0" + this._platform.substr(7),
         "bin"
       )
     );
