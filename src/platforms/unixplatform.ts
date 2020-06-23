@@ -1,6 +1,6 @@
 import { join } from "path";
 
-import IPlatform from "./platform";
+import IPlatform, { CMakeConfig, CMakeConfigMap } from "./platform";
 
 export default abstract class UnixPlatform implements IPlatform {
   protected _platform: string;
@@ -36,6 +36,17 @@ export default abstract class UnixPlatform implements IPlatform {
 
   public qmakeName(): string {
     return "qmake";
+  }
+
+  public cmakeArgs(): CMakeConfigMap {
+    return {};
+  }
+
+  public cmakeConfig(): CMakeConfig {
+    return {
+      generator: "Unix Makefiles",
+      config: this.cmakeArgs(),
+    };
   }
 
   public installDirs(_toolPath: string): [string, string] {
