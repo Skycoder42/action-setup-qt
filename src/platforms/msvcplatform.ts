@@ -6,6 +6,7 @@ import { exportVariable, info, debug, warning } from "@actions/core";
 import { exec } from "@actions/exec";
 
 import WindowsPlatform from "./windowsplatform";
+import { CMakeConfig } from "./platform";
 
 const exists = promisify(existsCB);
 
@@ -33,6 +34,18 @@ export default class MsvcPlatform extends WindowsPlatform {
 
   public makeName(): string {
     return "nmake";
+  }
+
+  public cmakeConfig(): CMakeConfig {
+    return {
+      generator: "NMake Makefiles",
+      config: this.isWinrt()
+        ? {
+            CMAKE_SYSTEM_NAME: "WindowsStore",
+            CMAKE_SYSTEM_VERSION: "10.0",
+          }
+        : {},
+    };
   }
 
   public installDirs(toolPath: string): [string, string] {
@@ -84,10 +97,20 @@ export default class MsvcPlatform extends WindowsPlatform {
     throw Error("Unable to find a valid Visual Studio installation");
   }
 
+  private isWinrt(): boolean {
+    return this._platform.includes("winrt");
+  }
+
   private vcArch(): string {
-    if (this._platform.includes("winrt")) return "x64_x86";
-    else if (this._platform.includes("64")) return "x64";
-    else return "x86";
+    if (this._platform.includes("arm64")) {
+      return "x64_arm64";
+    } else if (this._platform.includes("arm")) {
+      return "x64_arm";
+    } else if (this._platform.includes("64")) {
+      return "x64";
+    } else {
+      return "x86";
+    }
   }
 
   private vcVersion(vsVersion: number): string | null {

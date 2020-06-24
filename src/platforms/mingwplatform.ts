@@ -3,7 +3,7 @@ import { join } from "path";
 import { addPath } from "@actions/core";
 
 import WindowsPlatform from "./windowsplatform";
-import VersionNumber from "../versionnumber";
+import { CMakeConfig } from "./platform";
 
 export default class MingwPlatform extends WindowsPlatform {
   public installPlatform(): string {
@@ -23,6 +23,13 @@ export default class MingwPlatform extends WindowsPlatform {
 
   public makeName(): string {
     return "mingw32-make";
+  }
+
+  public cmakeConfig(): CMakeConfig {
+    return {
+      generator: "MinGW Makefiles",
+      config: {},
+    };
   }
 
   public installDirs(toolPath: string): [string, string] {

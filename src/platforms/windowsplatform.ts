@@ -1,6 +1,6 @@
 import { exec } from "@actions/exec";
 
-import IPlatform from "./platform";
+import IPlatform, { CMakeConfig } from "./platform";
 import VersionNumber from "../versionnumber";
 
 export default abstract class WindowsPlatform implements IPlatform {
@@ -14,6 +14,7 @@ export default abstract class WindowsPlatform implements IPlatform {
 
   public abstract installPlatform(): string;
   public abstract makeName(): string;
+  public abstract cmakeConfig(): CMakeConfig;
   public abstract installDirs(toolPath: string): [string, string];
 
   public addExtraEnvVars(_basePath: string): void {}
