@@ -31,6 +31,8 @@ inputs:
 outputs:
   shell:
     description: "The shell that should be used to run qmake/make commands"
+  cmakeArgs:
+    description: "Predefined arguments to be passed to cmake"
   make:
     description: 'Name of the "make" executable to be used, i.e. name, nmake or mingw32-make'
   tests:

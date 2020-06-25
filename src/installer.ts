@@ -12,6 +12,7 @@ import {
   warning,
   saveState,
   getState,
+  exportVariable,
 } from "@actions/core";
 import { mv, rmRF, mkdirP, which } from "@actions/io";
 import { exec } from "@actions/exec";
@@ -20,6 +21,7 @@ import { restoreCache, saveCache } from "@actions/cache";
 import IPlatform from "./platforms/platform";
 import LinuxPlatform from "./platforms/linuxplatform";
 import AndroidPlatform from "./platforms/androidplatform";
+import WasmPlatform from "./platforms/wasmplatform";
 import MingwPlatform from "./platforms/mingwplatform";
 import MsvcPlatform from "./platforms/msvcplatform";
 import MacosPlatform from "./platforms/macosplatform";
@@ -47,9 +49,13 @@ export default class Installer {
     let arch: string;
     switch (osPlatform()) {
       case "linux":
-        if (this._config.platform.includes("android"))
+        if (this._config.platform.includes("android")) {
           this._platform = new AndroidPlatform(this._config.platform);
-        else this._platform = new LinuxPlatform(this._config.platform);
+        } else if (this._config.platform.includes("wasm")) {
+          this._platform = new WasmPlatform(this._config.platform);
+        } else {
+          this._platform = new LinuxPlatform(this._config.platform);
+        }
         host = "linux";
         arch = "x64";
         break;
@@ -151,6 +157,9 @@ export default class Installer {
     );
     setOutput("outdir", instPath);
     setOutput("installdir", iPath[1]);
+
+    // prepare CMake arguments
+    this.generateCMakeArgs(toolPath, iPath[1]);
   }
 
   public async post(): Promise<void> {
@@ -251,5 +260,27 @@ export default class Installer {
     } catch ({ message }) {
       warning(`Failed to save cache with error: ${message}`);
     }
+  }
+
+  private generateCMakeArgs(qtDir: string, instDir: string): void {
+    const { generator, config } = this._platform.cmakeConfig();
+    const cmakeArgs: string[] = [
+      "-G",
+      generator,
+      `-DCMAKE_PREFIX_PATH=${qtDir}`,
+      `-DCMAKE_FIND_ROOT_PATH=${qtDir}`,
+      `-DCMAKE_INSTALL_PREFIX=${instDir}`,
+    ];
+    for (let [key, value] of Object.entries(config)) {
+      if (typeof value === "boolean") {
+        value = value ? "ON" : "OFF";
+      }
+      cmakeArgs.push(`-D${key}=${value}`);
+    }
+
+    exportVariable("CMAKE_PREFIX_PATH", qtDir);
+    exportVariable("CMAKE_FIND_ROOT_PATH", qtDir);
+    // TODO use https://www.npmjs.com/package/shell-escape
+    setOutput("cmakeArgs", "'" + cmakeArgs.join("' '") + "'");
   }
 }

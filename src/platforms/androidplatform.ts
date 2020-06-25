@@ -18,7 +18,7 @@ export default class AndroidPlatform extends LinuxPlatform {
   public cmakeArgs(): CMakeConfigMap {
     return {
       CMAKE_TOOLCHAIN_FILE:
-        "$ENV{ANDROID_SDK_ROOT}/ndk-bundle/build/cmake/android.toolchain.cmake",
+        "$ENV{ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake",
       CMAKE_FIND_ROOT_PATH_MODE_PACKAGE: "BOTH",
       ANDROID_ABI: "arm64-v8a",
       "ANDROID_BUILD_ABI_arm64-v8a": true,
