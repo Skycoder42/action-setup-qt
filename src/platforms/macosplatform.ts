@@ -18,9 +18,13 @@ export default class MacosPlatform extends UnixPlatform {
 
   public cmakeArgs(): CMakeConfigMap {
     const hunterVersion = "v0.23.259";
-    return {
+    const args: CMakeConfigMap = {
       HUNTER_URL: `https://github.com/cpp-pm/hunter/archive/${hunterVersion}.tar.gz`,
       HUNTER_SHA1: "59541baf106b91ae4fec32e6c6b0990d04c7f6be",
     };
+    if (this._platform === "ios") {
+      args["CMAKE_SYSTEM_NAME"] = "iOS";
+    }
+    return args;
   }
 }
