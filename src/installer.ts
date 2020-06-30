@@ -147,9 +147,7 @@ export default class Installer {
     await mkdirP(iPath[0]);
     const instPath = join(
       iPath[0],
-      osPlatform() == "win32" ? toolPath.substr(3) : toolPath.substr(1),
-      "..",
-      ".."
+      osPlatform() == "win32" ? toolPath.substr(3) : toolPath.substr(1)
     );
     setOutput("outdir", instPath);
     setOutput("installdir", iPath[1]);
