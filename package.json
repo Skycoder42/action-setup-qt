@@ -19,7 +19,7 @@
   "author": "Skycoder42",
   "license": "BSD-3-CLAUSE",
   "dependencies": {
-    "@actions/cache": "^0.2.1",
+    "@actions/cache": "^1.0.0",
     "@actions/core": "^1.2.4",
     "@actions/exec": "^1.0.4",
     "@actions/io": "^1.0.2",
@@ -30,13 +30,13 @@
     "semver": "^7.3.2"
   },
   "devDependencies": {
-    "@types/glob": "^7.1.2",
-    "@types/node": "^14.0.13",
-    "@types/semver": "^7.2.0",
+    "@types/glob": "^7.1.3",
+    "@types/node": "^14.0.23",
+    "@types/semver": "^7.3.1",
     "npm-check-updates": "^7.0.1",
     "prettier": "^2.0.5",
     "pretty-quick": "^2.0.1",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.6"
   },
   "husky": {
     "hooks": {
