@@ -75,7 +75,7 @@ class Downloader {
 
     const sourceUrl = new URL(subPath.join("/") + "/", url);
     debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
-    const reply = await this.get(new URL("Updates.xml", sourceUrl), "text/xml");
+    const reply = await this.get(new URL("Updates.xml", sourceUrl), "application/xml");
     const update: XmlRoot = parse(reply);
 
     if (typeof update.Updates.PackageUpdate == "undefined") return;
@@ -102,7 +102,7 @@ class Downloader {
       debug(`Downloading Updates.xml for subPath ${subPath} from ${url}`);
       const reply = await this.get(
         new URL("Updates.xml", sourceUrl),
-        "text/xml"
+        "application/xml"
       );
       const update: XmlRoot = parse(reply);
       if (typeof update.Updates.PackageUpdate == "undefined") return true;
